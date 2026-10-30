@@ -384,7 +384,6 @@
     let isPositionHeld = false;
     let tvWidget = null;
 
-    // ★修正：15分足を直近3日分（10/25, 10/26, 10/27）のデータ量に絞り込み
     const chartDataMap = {
       '15': generateCandlesWithDates([
         '10/25', '10/26', '10/27'
@@ -586,17 +585,20 @@
       ctx.clearRect(0, 0, width, height);
 
       const candles = chartDataMap[currentTimeframe];
-      const padding = { top: 25, bottom: 35, left: 10, right: 65 };
+      const padding = { top: 30, bottom: 35, left: 10, right: 65 };
 
+      // ★改善：ローソク足・ボリンジャーバンド・指値価格をすべて包み込む最適な上下限を計算
       let minP = Math.min(...candles.map(c => Math.min(c.low, c.lowerBb)));
       let maxP = Math.max(...candles.map(c => Math.max(c.high, c.upperBb)));
 
-      if (activeBuyPrice) { minP = Math.min(minP, activeBuyPrice - 0.05); maxP = Math.max(maxP, activeBuyPrice + 0.05); }
-      if (activeSellPrice) { minP = Math.min(minP, activeSellPrice - 0.05); maxP = Math.max(maxP, activeSellPrice + 0.05); }
+      if (activeBuyPrice) { minP = Math.min(minP, activeBuyPrice); maxP = Math.max(maxP, activeBuyPrice); }
+      if (activeSellPrice) { minP = Math.min(minP, activeSellPrice); maxP = Math.max(maxP, activeSellPrice); }
 
-      const rangePadding = (maxP - minP) * 0.12;
-      minP -= rangePadding;
-      maxP += rangePadding;
+      // 上下に適度なゆとりを持たせる（15%のパディング）
+      const span = maxP - minP;
+      const margin = Math.max(span * 0.15, 0.10); // 最低でも10銭分の余白を確保
+      minP -= margin;
+      maxP += margin;
 
       const priceRange = maxP - minP || 1;
       const getY = (price) => height - padding.bottom - ((price - minP) / priceRange) * (height - padding.top - padding.bottom);
