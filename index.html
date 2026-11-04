@@ -109,10 +109,10 @@
           <span class="flex items-center gap-1 text-blue-400">
             <span class="w-2.5 h-0.5 bg-blue-400"></span> 建値
           </span>
-          <span class="text-slate-500 ml-auto font-mono text-[10px] hidden sm:inline" id="tfLabelDisplay">表示: 15分足 / 本家レート完全同期</span>
+          <span class="text-slate-500 ml-auto font-mono text-[10px] hidden sm:inline" id="tfLabelDisplay">表示: 15分足 / ローソク足・BB完全同期</span>
         </div>
 
-        <!-- Canvas Chart Container (No Overlap Issues) -->
+        <!-- Canvas Chart Container -->
         <div class="flex-1 w-full h-full relative overflow-hidden rounded-lg border border-slate-800 bg-slate-950" id="canvasContainer">
           <canvas id="mainChartCanvas" class="w-full h-full block"></canvas>
         </div>
@@ -435,7 +435,6 @@
     let currentTimeframe = '15'; 
     let isPositionHeld = false;
 
-    // 高精度リアルタイム連動ローソク足ジェネレータ
     function generateLiveCandles(totalBars, endPrice, volatility, intervalType) {
       let fullList = [];
       let current = endPrice - (volatility * Math.sqrt(totalBars) * 0.3);
@@ -466,7 +465,6 @@
         fullList.push({ date: dateStr, open, high, low, close });
       }
 
-      // 最後のバーの終値が「現在のリアルタイムレート(endPrice)」に完全一致するように補正
       if (fullList.length > 0) {
         let diff = endPrice - fullList[fullList.length - 1].close;
         fullList.forEach(c => { c.close += diff; c.high += diff; c.low += diff; c.open += diff; });
@@ -710,12 +708,12 @@
       });
 
       const tfNames = { '15': '15分足', '60': '60分足', 'D': '日足' };
-      document.getElementById('tfLabelDisplay').textContent = `表示: ${tfNames[tf]} / リアルタイム価格連動`;
+      document.getElementById('tfLabelDisplay').textContent = `表示: ${tfNames[tf]} / ローソク足・BB完全同期`;
 
       renderMainCanvasChart();
     }
 
-    // ★スマホ表示やツール重なりを完全に防ぐ、スマートマージン付きの高精度Canvas描画エンジン
+    // ★ローソク足・ボリンジャーバンド・指値ラインの完全統合描画エンジン
     function renderMainCanvasChart() {
       const canvas = document.getElementById('mainChartCanvas');
       const container = document.getElementById('canvasContainer');
@@ -732,9 +730,8 @@
 
       const chartDataMap = getDynamicChartData();
       const candles = chartDataMap[currentTimeframe];
-      const padding = { top: 35, bottom: 35, left: 10, right: 65 }; // 上部に余裕を持たせ文字被りを解消
+      const padding = { top: 35, bottom: 35, left: 10, right: 65 };
 
-      // ローソク足・BBに加えて、指値価格もレンジ計算に必ず含めることで画面外への飛び出しを完全防止
       let minP = Math.min(...candles.map(c => Math.min(c.low, c.lowerBb)));
       let maxP = Math.max(...candles.map(c => Math.max(c.high, c.upperBb)));
 
@@ -770,7 +767,7 @@
       const candleWidth = Math.max(1.5, (chartWidth / candles.length) * 0.75);
       const gap = chartWidth / candles.length;
 
-      // ボリンジャーバンド
+      // ボリンジャーバンド帯
       ctx.beginPath();
       candles.forEach((c, i) => {
         const x = padding.left + i * gap + gap / 2;
@@ -817,7 +814,7 @@
       });
       ctx.stroke();
 
-      // ローソク足
+      // ローソク足本体とヒゲの描画
       ctx.textAlign = 'center';
       candles.forEach((c, i) => {
         const x = padding.left + i * gap + gap / 2;
@@ -829,14 +826,17 @@
         const isBullish = c.close >= c.open;
         const color = isBullish ? '#10b981' : '#f43f5e';
 
+        // ヒゲ
         ctx.strokeStyle = color; ctx.lineWidth = 1;
         ctx.beginPath(); ctx.moveTo(x, yHigh); ctx.lineTo(x, yLow); ctx.stroke();
 
+        // 胴体
         ctx.fillStyle = color;
         const topY = Math.min(yOpen, yClose);
         const bodyH = Math.max(1.5, Math.abs(yClose - yOpen));
         ctx.fillRect(x - candleWidth / 2, topY, candleWidth, bodyH);
 
+        // 日付ラベル
         if (c.date && i % Math.max(1, Math.floor(candles.length / 5)) === 0) {
           ctx.fillStyle = '#94a3b8';
           ctx.font = '8px Inter';
@@ -856,7 +856,7 @@
         ctx.fillText(` [買指値: ${activeBuyPrice.toFixed(3)}]`, width - padding.right - 5, yBuy - 5);
       }
 
-      // 利確売り指値ライン（上部の余白に収まるようスマート配置）
+      // 利確売り指値ライン
       if (activeSellPrice) {
         const ySell = getY(activeSellPrice);
         ctx.strokeStyle = '#10b981'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 4]);
