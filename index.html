@@ -56,7 +56,7 @@
             <span>USD/JPY リアルタイム</span>
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
           </div>
-          <div class="text-base sm:text-lg font-mono font-bold text-emerald-400" id="headerUsdJpy">157.685</div>
+          <div class="text-base sm:text-lg font-mono font-bold text-emerald-400" id="headerUsdJpy">158.399</div>
         </div>
         <div class="text-[10px] sm:text-xs text-slate-400 border-l border-slate-700 pl-3 hidden md:block">
           <div>データ元: <span class="text-slate-200 font-semibold">TradingView & Live API</span></div>
@@ -75,7 +75,7 @@
 
     <!-- LEFT WINDOW: Interactive Dual Chart Window (7/8 cols on lg) -->
     <section class="lg:col-span-7 xl:col-span-8 flex flex-col gap-4">
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 sm:p-4 flex flex-col h-[500px] sm:h-[650px] shadow-lg relative">
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 sm:p-4 flex flex-col h-[450px] sm:h-[650px] shadow-lg relative">
         
         <!-- Header Controls for Chart -->
         <div class="flex flex-wrap justify-between items-center mb-3 gap-2">
@@ -183,12 +183,12 @@
           <div class="grid grid-cols-2 gap-3 text-xs">
             <div>
               <label class="text-slate-400 block mb-1">新規買い指値 (円)</label>
-              <input type="number" step="0.001" id="inputBuyPrice" value="156.850" oninput="onBuyOrSellPriceChange()"
+              <input type="number" step="0.001" id="inputBuyPrice" value="158.399" oninput="onBuyOrSellPriceChange()"
                 class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-sm font-mono text-white focus:outline-none focus:border-blue-500">
             </div>
             <div>
               <label class="text-slate-400 block mb-1">決済売り指値 (円)</label>
-              <input type="number" step="0.001" id="inputSellPrice" value="157.050" oninput="onSellPriceDirectChange()"
+              <input type="number" step="0.001" id="inputSellPrice" value="158.599" oninput="onSellPriceDirectChange()"
                 class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-sm font-mono text-white focus:outline-none focus:border-blue-500">
             </div>
           </div>
@@ -204,7 +204,7 @@
           <div class="bg-slate-900 p-2.5 rounded border border-slate-800 flex justify-between items-center text-xs font-mono">
             <div>
               <span class="text-slate-400 block text-[10px]">自動算出 目標利確幅</span>
-              <span class="text-emerald-400 font-bold text-sm" id="previewPipsWidth">+0.200円 (＋20銭)</span>
+              <span class="text-emerald-400 font-bold text-sm" id="previewPipsWidth">+0.200円 （＋20.0銭）</span>
             </div>
             <div class="text-right">
               <span class="text-slate-400 block text-[10px]">想定利益額</span>
@@ -238,7 +238,7 @@
       <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 sm:p-5 shadow-lg flex-1 flex flex-col">
         <div class="flex justify-between items-center mb-3">
           <h3 class="text-sm font-bold text-white flex items-center gap-2">
-            <i class="fa-solid fa-receipt text-blue-400"></i> 約定・決済履歴 (10月実績)
+            <i class="fa-solid fa-receipt text-blue-400"></i> 約定・決済履歴 (11月実績)
           </h3>
           <div class="flex items-center gap-2">
             <span class="text-xs text-slate-400" id="tradeCountBadge">4件完了</span>
@@ -256,8 +256,8 @@
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="text-slate-400 block mb-0.5 text-[10px]">日付 (例: 10/30)</label>
-              <input type="text" id="manualDate" value="10/30" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 font-mono text-white text-xs">
+              <label class="text-slate-400 block mb-0.5 text-[10px]">日付 (例: 11/04)</label>
+              <input type="text" id="manualDate" value="11/04" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 font-mono text-white text-xs">
             </div>
             <div>
               <label class="text-slate-400 block mb-0.5 text-[10px]">通貨数量</label>
@@ -267,7 +267,7 @@
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="text-slate-400 block mb-0.5 text-[10px]">決済価格 (円)</label>
-              <input type="number" id="manualPrice" value="157.882" step="0.001" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 font-mono text-white text-xs">
+              <input type="number" id="manualPrice" value="158.399" step="0.001" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 font-mono text-white text-xs">
             </div>
             <div>
               <label class="text-slate-400 block mb-0.5 text-[10px]">損益額 (円 - マイナス可)</label>
@@ -367,15 +367,15 @@
           <div class="space-y-1.5 border-t border-slate-800 pt-2 text-xs">
             <div class="flex justify-between">
               <span class="text-slate-400">必要証拠金 (<span id="marginUnitsLabel">5,000</span>通貨 @10倍):</span>
-              <span class="font-mono text-slate-200 font-bold" id="reqMarginDisplay">78,842 円</span>
+              <span class="font-mono text-slate-200 font-bold" id="reqMarginDisplay">79,199 円</span>
             </div>
             <div class="flex justify-between">
               <span class="text-slate-400">発注余力:</span>
-              <span class="font-mono text-emerald-400 font-bold" id="freeMarginDisplay">16,608 円</span>
+              <span class="font-mono text-emerald-400 font-bold" id="freeMarginDisplay">16,251 円</span>
             </div>
             <div class="flex justify-between">
               <span class="text-slate-400">実質レバレッジ:</span>
-              <span class="font-mono text-slate-300" id="effectiveLeverageDisplay">8.26 倍</span>
+              <span class="font-mono text-slate-300" id="effectiveLeverageDisplay">8.29 倍</span>
             </div>
           </div>
         </div>
@@ -440,13 +440,13 @@
     let monthlyGoal = parseFloat(localStorage.getItem('fx_monthly_goal')) || 10000;
     let tradeHistoryList = JSON.parse(localStorage.getItem('fx_trade_list')) || PRESET_TRADES;
 
-    let activeBuyPrice = parseFloat(localStorage.getItem('fx_active_buy_price')) || 156.850;
-    let activeSellPrice = parseFloat(localStorage.getItem('fx_active_sell_price')) || 157.050;
+    let activeBuyPrice = parseFloat(localStorage.getItem('fx_active_buy_price')) || 158.399;
+    let activeSellPrice = parseFloat(localStorage.getItem('fx_active_sell_price')) || 158.599;
     let activeQty = parseInt(localStorage.getItem('fx_active_qty')) || 5000;
 
-    let currentUsdJpy = 157.882;
+    let currentUsdJpy = 158.399;
     let currentTimeframe = '15'; 
-    let currentViewMode = 'tv';
+    let currentViewMode = 'overlay'; // スマホでも見やすいよう初期値を「重ね」に設定可能
 
     let isPositionHeld = false;
     let tvWidget = null;
@@ -465,15 +465,15 @@
 
         let dateStr = '';
         if (intervalType === '15' && i % 24 === 12) {
-          let d = new Date(2026, 9, 30);
+          let d = new Date(2026, 10, 4); // 11/04基準
           d.setDate(d.getDate() - Math.floor((totalBars - 1 - i) / 24));
           dateStr = `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
         } else if (intervalType === '60' && i % 6 === 3) {
-          let d = new Date(2026, 9, 30);
+          let d = new Date(2026, 10, 4);
           d.setDate(d.getDate() - Math.floor((totalBars - 1 - i) / 6));
           dateStr = `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
         } else if (intervalType === 'D') {
-          let d = new Date(2026, 9, 30);
+          let d = new Date(2026, 10, 4);
           d.setDate(d.getDate() - (totalBars - 1 - i));
           dateStr = `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
         }
@@ -510,7 +510,7 @@
       let fullList = [];
       let current = endPrice - (volatility * Math.sqrt(totalDays) * 0.4);
       for (let i = 0; i < totalDays; i++) {
-        let d = new Date(2026, 9, 30);
+        let d = new Date(2026, 10, 4);
         d.setDate(d.getDate() - (totalDays - 1 - i));
         let dateStr = `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
 
@@ -545,7 +545,9 @@
       document.getElementById('inputStartBalance').value = startBalance;
       document.getElementById('monthlyGoalInput').value = monthlyGoal;
 
-      initTradingViewWidget();
+      // 初期状態で「重ね」画面を表示するように設定
+      setChartView('overlay');
+
       window.addEventListener('resize', renderAllCharts);
       updateDashboard();
       previewIFD();
@@ -555,10 +557,8 @@
       setTimeout(renderAllCharts, 150);
     });
 
-    // 買値または売値が変更されたときに自動計算・プレビュー更新
     function onBuyOrSellPriceChange() {
       const bPrice = parseFloat(document.getElementById('inputBuyPrice').value) || 0;
-      // デフォルトで買値 + 0.20銭を売値の初期連動にする（必要に応じて上書き可能）
       const sPrice = parseFloat((bPrice + 0.20).toFixed(3));
       document.getElementById('inputSellPrice').value = sPrice;
       previewIFD();
@@ -610,10 +610,9 @@
       btn.onclick = simulateExecution;
 
       updateDashboard();
-      alert('アクティブ注文（買値・売値・通貨数）を更新し、保存しました！');
+      alert('アクティブ注文を更新し、保存しました！');
     }
 
-    // ① 利確（約定注文）：設定されている決済売り指値と通貨数で自動計算して約定記録
     function recordExecutionTrade() {
       const bPrice = activeBuyPrice;
       const sPrice = activeSellPrice;
@@ -647,7 +646,6 @@
       alert(`利確（約定注文）を記録しました！ 損益: +${pnlAmount.toLocaleString()}円`);
     }
 
-    // ② 利確（注文変更）：モーダルを開いて自由な金額（マイナス可）を入力して記録
     function openModifyModal() {
       const pipsDiff = activeSellPrice - activeBuyPrice;
       const defaultPnl = Math.round(activeQty * pipsDiff);
@@ -700,7 +698,7 @@
     }
 
     function submitManualTrade() {
-      const date = document.getElementById('manualDate').value.trim() || '10/30';
+      const date = document.getElementById('manualDate').value.trim() || '11/04';
       const qty = parseInt(document.getElementById('manualQty').value) || 5000;
       const price = parseFloat(document.getElementById('manualPrice').value) || currentUsdJpy;
       const pnl = parseFloat(document.getElementById('manualPnl').value) || 0;
@@ -835,34 +833,47 @@
 
       const chartDataMap = getDynamicChartData();
       const candles = chartDataMap[currentTimeframe];
-      const padding = { top: 30, bottom: 35, left: 10, right: 65 };
+      const padding = { top: 25, bottom: 30, left: 10, right: 60 };
 
+      // ★ スマホ最適化：ローソク足の実価格帯（高値・安値・ボリンジャーバンド）をベースにしつつ、
+      // 指値が画面外に飛び出さないよう、指値価格も含めて最適な表示レンジを自動算出
       let minP = Math.min(...candles.map(c => Math.min(c.low, c.lowerBb)));
       let maxP = Math.max(...candles.map(c => Math.max(c.high, c.upperBb)));
 
-      if (activeBuyPrice) { minP = Math.min(minP, activeBuyPrice); maxP = Math.max(maxP, activeBuyPrice); }
-      if (activeSellPrice) { minP = Math.min(minP, activeSellPrice); maxP = Math.max(maxP, activeSellPrice); }
+      if (!isPositionHeld && activeBuyPrice) {
+        minP = Math.min(minP, activeBuyPrice);
+        maxP = Math.max(maxP, activeBuyPrice);
+      }
+      if (activeSellPrice) {
+        minP = Math.min(minP, activeSellPrice);
+        maxP = Math.max(maxP, activeSellPrice);
+      }
 
-      const span = maxP - minP;
-      const margin = Math.max(span * 0.15, 0.10);
+      // 上下に適度なゆとりを持たせて圧縮表示を防ぐ
+      let span = maxP - minP;
+      if (span < 0.15) span = 0.15; // 最小レンジ幅を確保
+      const margin = span * 0.12;
       minP -= margin;
       maxP += margin;
 
       const priceRange = maxP - minP || 1;
       const getY = (price) => height - padding.bottom - ((price - minP) / priceRange) * (height - padding.top - padding.bottom);
 
+      // 横軸の価格グリッド線
       ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1;
-      for (let i = 0; i <= 5; i++) {
-        const p = minP + (priceRange / 5) * i;
+      for (let i = 0; i <= 4; i++) {
+        const p = minP + (priceRange / 4) * i;
         const y = getY(p);
         ctx.beginPath(); ctx.moveTo(padding.left, y); ctx.lineTo(width - padding.right, y); ctx.stroke();
-        ctx.fillStyle = '#64748b'; ctx.font = '9px Inter'; ctx.fillText(p.toFixed(3), width - padding.right + 5, y + 3);
+        ctx.fillStyle = '#64748b'; ctx.font = '9px Inter'; ctx.textAlign = 'left';
+        ctx.fillText(p.toFixed(3), width - padding.right + 4, y + 3);
       }
 
       const chartWidth = width - padding.left - padding.right;
       const candleWidth = Math.max(1.5, (chartWidth / candles.length) * 0.75);
       const gap = chartWidth / candles.length;
 
+      // ボリンジャーバンド帯描画
       ctx.beginPath();
       candles.forEach((c, i) => {
         const x = padding.left + i * gap + gap / 2;
@@ -878,9 +889,9 @@
       ctx.fillStyle = 'rgba(56, 189, 248, 0.06)';
       ctx.fill();
 
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.5)';
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
       ctx.lineWidth = 1;
-      ctx.setLineDash([3, 3]);
+      ctx.setLineDash([2, 2]);
       ctx.beginPath();
       candles.forEach((c, i) => {
         const x = padding.left + i * gap + gap / 2;
@@ -898,6 +909,7 @@
       ctx.stroke();
       ctx.setLineDash([]);
 
+      // SMAライン
       ctx.strokeStyle = '#94a3b8';
       ctx.lineWidth = 1.2;
       ctx.beginPath();
@@ -908,6 +920,7 @@
       });
       ctx.stroke();
 
+      // ローソク足本体と日付
       ctx.textAlign = 'center';
       candles.forEach((c, i) => {
         const x = padding.left + i * gap + gap / 2;
@@ -929,30 +942,33 @@
 
         if (c.date) {
           ctx.fillStyle = '#94a3b8';
-          ctx.font = '9px Inter';
-          ctx.fillText(c.date, x, height - padding.bottom + 14);
+          ctx.font = '8px Inter';
+          ctx.fillText(c.date, x, height - padding.bottom + 12);
 
           ctx.strokeStyle = '#334155';
-          ctx.beginPath(); ctx.moveTo(x, height - padding.bottom); ctx.lineTo(x, height - padding.bottom + 4); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(x, height - padding.bottom); ctx.lineTo(x, height - padding.bottom + 3); ctx.stroke();
         }
       });
 
+      // 買指値ライン（未保有時）
       if (!isPositionHeld && activeBuyPrice) {
         const yBuy = getY(activeBuyPrice);
-        ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 4]);
+        ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 3]);
         ctx.beginPath(); ctx.moveTo(padding.left, yBuy); ctx.lineTo(width - padding.right, yBuy); ctx.stroke(); ctx.setLineDash([]);
-        ctx.fillStyle = '#f59e0b'; ctx.font = 'bold 10px Inter'; ctx.textAlign = 'right';
-        ctx.fillText(` [買: ${activeBuyPrice.toFixed(3)}]`, width - padding.right - 5, yBuy - 5);
+        ctx.fillStyle = '#f59e0b'; ctx.font = 'bold 9px Inter'; ctx.textAlign = 'right';
+        ctx.fillText(` [買: ${activeBuyPrice.toFixed(3)}]`, width - padding.right - 4, yBuy - 4);
       }
 
+      // 利確売値ライン
       if (activeSellPrice) {
         const ySell = getY(activeSellPrice);
-        ctx.strokeStyle = '#10b981'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 4]);
+        ctx.strokeStyle = '#10b981'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 3]);
         ctx.beginPath(); ctx.moveTo(padding.left, ySell); ctx.lineTo(width - padding.right, ySell); ctx.stroke(); ctx.setLineDash([]);
-        ctx.fillStyle = '#10b981'; ctx.font = 'bold 10px Inter'; ctx.textAlign = 'right';
-        ctx.fillText(` [利: ${activeSellPrice.toFixed(3)}]`, width - padding.right - 5, ySell - 5);
+        ctx.fillStyle = '#10b981'; ctx.font = 'bold 9px Inter'; ctx.textAlign = 'right';
+        ctx.fillText(` [利: ${activeSellPrice.toFixed(3)}]`, width - padding.right - 4, ySell - 4);
       }
 
+      // ポジション保有中の建値ライン
       if (isPositionHeld && activeBuyPrice) {
         const yPos = getY(activeBuyPrice);
         const yCurr = getY(currentUsdJpy);
@@ -962,21 +978,22 @@
         ctx.fillStyle = currentUsdJpy >= activeBuyPrice ? 'rgba(16, 185, 129, 0.15)' : 'rgba(244, 63, 94, 0.15)';
         ctx.fillRect(padding.left, Math.min(yPos, yCurr), width - padding.left - padding.right, Math.abs(yCurr - yPos));
 
-        ctx.fillStyle = '#3b82f6'; ctx.font = 'bold 10px Inter'; ctx.textAlign = 'left';
-        ctx.fillText(` [建: ${activeBuyPrice.toFixed(3)}]`, padding.left + 5, yPos - 5);
+        ctx.fillStyle = '#3b82f6'; ctx.font = 'bold 9px Inter'; ctx.textAlign = 'left';
+        ctx.fillText(` [建: ${activeBuyPrice.toFixed(3)}]`, padding.left + 4, yPos - 4);
       }
 
+      // 過去の約定実績ドット
       tradeHistoryList.forEach((t) => {
         const matchIdx = candles.findIndex(c => c.date === t.date);
         if (matchIdx !== -1) {
           const xVal = padding.left + matchIdx * gap + gap / 2;
           const yVal = getY(t.price);
           ctx.fillStyle = t.pnl >= 0 ? '#c084fc' : '#f43f5e';
-          ctx.beginPath(); ctx.arc(xVal, yVal, 4.5, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath(); ctx.arc(xVal, yVal, 4, 0, Math.PI * 2); ctx.fill();
 
-          ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 9px Inter'; ctx.textAlign = 'center';
+          ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 8px Inter'; ctx.textAlign = 'center';
           const totalPnl = t.pnl + (t.swap || 0);
-          ctx.fillText(`${totalPnl >= 0 ? '+' : ''}${totalPnl}円`, xVal, yVal - 8);
+          ctx.fillText(`${totalPnl >= 0 ? '+' : ''}${totalPnl}円`, xVal, yVal - 7);
         }
       });
     }
@@ -1029,8 +1046,8 @@
 
     async function fetchLiveRate() {
       try {
-        const response = await fetch('https://open.er-api.com/v6/latest/USD');
-        const data = await response.json();
+        const response = byPassFetch('https://open.er-api.com/v6/latest/USD');
+        const data = await (await fetch('https://open.er-api.com/v6/latest/USD')).json();
         if (data && data.rates && data.rates.JPY) {
           currentUsdJpy = parseFloat(data.rates.JPY.toFixed(3));
           document.getElementById('headerUsdJpy').textContent = currentUsdJpy.toFixed(3);
@@ -1068,7 +1085,7 @@
         document.getElementById('remainingGoalAmount').className = "font-mono font-bold text-amber-400 text-sm";
         document.getElementById('remainingGoalAmount').textContent = `${remainingGoal.toLocaleString()} 円`;
         const tradesNeeded = Math.ceil(remainingGoal / 1000);
-        document.getElementById('remainingTradesNeeded').textContent = `約 ${tradesNeeded} 回`;
+        document.getElementById('remainingTradesNeeded').textContent = `约 ${tradesNeeded} 回`;
       }
 
       document.getElementById('marginUnitsLabel').textContent = activeQty.toLocaleString();
