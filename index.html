@@ -441,11 +441,16 @@
     let sellPriceLine = null;
     let posLine = null;
 
-    // 軽量かつ高速な軽量チャート用データ生成
+    // 軽量チャート互換のビジネス日・タイムスタンプ生成関数
     function generateLightweightCandles(totalBars, endPrice, volatility, intervalType) {
       let fullList = [];
       let current = endPrice - (volatility * Math.sqrt(totalBars) * 0.3);
-      let startDate = new Date(2026, 9, 1); // 2026年10月起点
+      
+      // 基準日時 (2026年10月上旬から現在へ向かう形)
+      let baseTime = Math.floor(new Date(2026, 9, 1, 9, 0, 0).getTime() / 1000);
+      let stepSeconds = 900; // 15分
+      if (intervalType === '60') stepSeconds = 3600;
+      if (intervalType === 'D') stepSeconds = 86400;
 
       for (let i = 0; i < totalBars; i++) {
         let open = current;
@@ -455,21 +460,18 @@
         let low = Math.min(open, close) - Math.random() * (volatility * 0.4);
         current = close;
 
-        let d = new Date(startDate);
-        if (intervalType === '15') {
-          d.setMinutes(d.getMinutes() + i * 15);
-        } else if (intervalType === '60') {
-          d.setHours(d.getHours() + i);
+        let timeVal = baseTime + (i * stepSeconds);
+        if (intervalType === 'D') {
+          // 日足の場合はYYYY-MM-DD形式文字列が最も確実
+          let dObj = new Date(timeVal * 1000);
+          let year = dObj.getFullYear();
+          let month = String(dObj.getMonth() + 1).padStart(2, '0');
+          let day = String(dObj.getDate()).padStart(2, '0');
+          fullList.push({ time: `${year}-${month}-${day}`, open, high, low, close });
         } else {
-          d.setDate(d.getDate() + i);
+          // 分足・時間足の場合はUnix Timestamp（秒）
+          fullList.push({ time: timeVal, open, high, low, close });
         }
-
-        let timeStr = d.toISOString().split('T')[0];
-        if (intervalType !== 'D') {
-          timeStr += ` ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-        }
-
-        fullList.push({ time: timeStr, open, high, low, close });
       }
 
       if (fullList.length > 0) {
@@ -487,7 +489,9 @@
       document.getElementById('inputStartBalance').value = startBalance;
       document.getElementById('monthlyGoalInput').value = monthlyGoal;
 
-      initLightweightChart();
+      // DOMレイアウト確定後にチャートを安全に初期化
+      setTimeout(initLightweightChart, 50);
+
       updateDashboard();
       previewIFD();
       fetchLiveRate();
@@ -499,9 +503,12 @@
       if (!container) return;
       container.innerHTML = '';
 
+      const width = container.clientWidth || 600;
+      const height = container.clientHeight || 450;
+
       lwChart = LightweightCharts.createChart(container, {
-        width: container.clientWidth,
-        height: container.clientHeight,
+        width: width,
+        height: height,
         layout: {
           background: { type: LightweightCharts.ColorType.Solid, color: '#090d16' },
           textColor: '#94a3b8',
@@ -533,6 +540,7 @@
 
       const bars = generateLightweightCandles(80, currentUsdJpy, 0.025, currentTimeframe);
       candleSeries.setData(bars);
+      lwChart.timeScale().fitContent();
 
       updatePriceLines();
 
@@ -546,12 +554,10 @@
     function updatePriceLines() {
       if (!candleSeries) return;
 
-      // 既存のラインを安全にクリア
       if (buyPriceLine) { candleSeries.removePriceLine(buyPriceLine); buyPriceLine = null; }
       if (sellPriceLine) { candleSeries.removePriceLine(sellPriceLine); sellPriceLine = null; }
       if (posLine) { candleSeries.removePriceLine(posLine); posLine = null; }
 
-      // 買指値ライン（未保有時）
       if (!isPositionHeld && activeBuyPrice) {
         buyPriceLine = candleSeries.createPriceLine({
           price: activeBuyPrice,
@@ -563,7 +569,6 @@
         });
       }
 
-      // 利確売り指値ライン
       if (activeSellPrice) {
         sellPriceLine = candleSeries.createPriceLine({
           price: activeSellPrice,
@@ -575,7 +580,6 @@
         });
       }
 
-      // 保有中の建値ライン
       if (isPositionHeld && activeBuyPrice) {
         posLine = candleSeries.createPriceLine({
           price: activeBuyPrice,
@@ -797,6 +801,7 @@
       if (candleSeries) {
         const bars = generateLightweightCandles(80, currentUsdJpy, tf === '15' ? 0.025 : (tf === '60' ? 0.05 : 0.20), currentTimeframe);
         candleSeries.setData(bars);
+        if (lwChart) lwChart.timeScale().fitContent();
       }
     }
 
