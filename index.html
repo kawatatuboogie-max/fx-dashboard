@@ -99,24 +99,24 @@
           </div>
         </div>
 
-        <!-- Legend / Active Order Distance Tracker Bar (拡大サイズ & 正確な差分・損益計算) -->
+        <!-- Legend / Active Order Distance Tracker Bar -->
         <div class="flex flex-wrap items-center justify-between text-sm sm:text-base bg-slate-950 px-4 py-2.5 rounded border border-slate-800/80 mb-2 gap-3">
           <div class="flex items-center gap-3">
             <span class="text-slate-400 font-semibold text-xs sm:text-sm">発注監視:</span>
             <span class="flex items-center gap-1 text-amber-400 font-mono text-sm sm:text-base">
-              買指値: <strong id="trackerBuy">158.500</strong>
+              買指値: <strong id="trackerBuy">158.399</strong>
             </span>
             <span class="text-slate-600">|</span>
             <span class="flex items-center gap-1 text-emerald-400 font-mono text-sm sm:text-base">
-              利確指値: <strong id="trackerSell">158.800</strong>
+              利確指値: <strong id="trackerSell">158.599</strong>
             </span>
           </div>
           <div class="flex items-center gap-3 font-mono text-sm sm:text-base">
             <span class="text-slate-400 text-xs">指値との差:</span>
-            <span class="font-bold" id="trackerDiffVal">-- 円</span>
+            <span class="font-bold" id="trackerDiffVal">0.000円</span>
             <span class="text-slate-600">|</span>
             <span class="text-slate-400 text-xs">想定/評価損益:</span>
-            <span class="font-bold" id="trackerPnlVal">-- 円</span>
+            <span class="font-bold" id="trackerPnlVal">+0 円</span>
           </div>
         </div>
 
@@ -490,19 +490,24 @@
       initTradingViewWidget();
     }
 
+    // トラッカー（差分・損益）のライブ再計算ロジック
     function updateOrderTrackerDisplay() {
-      document.getElementById('trackerBuy').textContent = activeBuyPrice.toFixed(3);
-      document.getElementById('trackerSell').textContent = activeSellPrice.toFixed(3);
+      const bPrice = parseFloat(document.getElementById('inputBuyPrice').value) || activeBuyPrice;
+      const sPrice = parseFloat(document.getElementById('inputSellPrice').value) || activeSellPrice;
+      const qty = parseInt(document.getElementById('inputQty').value) || activeQty;
+
+      document.getElementById('trackerBuy').textContent = bPrice.toFixed(3);
+      document.getElementById('trackerSell').textContent = sPrice.toFixed(3);
       
-      // 正しい差分計算: 「現在値 - 買い指値」 (現在値の方が低ければマイナス＝指値まで下がる必要がある状態)
-      const diff = parseFloat((currentUsdJpy - activeBuyPrice).toFixed(3));
+      // 指値との差: 「現在値 - 買い指値」
+      const diff = parseFloat((currentUsdJpy - bPrice).toFixed(3));
       const diffStr = (diff >= 0 ? '+' : '') + diff.toFixed(3) + '円';
       const diffEl = document.getElementById('trackerDiffVal');
       diffEl.textContent = diffStr;
       diffEl.className = diff >= 0 ? 'text-emerald-400 font-bold font-mono' : 'text-amber-400 font-bold font-mono';
 
-      // 損益換算: 買い指値に対する現在の含み益/含み損 (5,000通貨などの数量を反映)
-      const pnlVal = Math.round(activeQty * (currentUsdJpy - activeBuyPrice));
+      // 損益換算: 「(現在値 - 買い指値) * 数量」
+      const pnlVal = Math.round(qty * diff);
       const pnlStr = (pnlVal >= 0 ? '+' : '') + pnlVal.toLocaleString() + ' 円';
       const pnlEl = document.getElementById('trackerPnlVal');
       pnlEl.textContent = pnlStr;
@@ -514,10 +519,12 @@
       const sPrice = parseFloat((bPrice + 0.20).toFixed(3));
       document.getElementById('inputSellPrice').value = sPrice;
       previewIFD();
+      updateOrderTrackerDisplay();
     }
 
     function onSellPriceDirectChange() {
       previewIFD();
+      updateOrderTrackerDisplay();
     }
 
     function previewIFD() {
@@ -551,7 +558,6 @@
       localStorage.setItem('fx_active_sell_price', activeSellPrice);
       localStorage.setItem('fx_active_qty', activeQty);
 
-      updateOrderTrackerDisplay();
       updateDashboard();
       alert('アクティブ注文を更新し、監視トラッカーに反映しました！');
     }
@@ -717,13 +723,11 @@
         if (data && data.rates && data.rates.JPY) {
           currentUsdJpy = parseFloat(data.rates.JPY.toFixed(3));
           document.getElementById('headerUsdJpy').textContent = currentUsdJpy.toFixed(3);
-          updateOrderTrackerDisplay();
           updateDashboard();
         }
       } catch (e) {
         currentUsdJpy += (Math.random() - 0.5) * 0.02;
         document.getElementById('headerUsdJpy').textContent = currentUsdJpy.toFixed(3);
-        updateOrderTrackerDisplay();
         updateDashboard();
       }
     }
@@ -766,7 +770,7 @@
       document.getElementById('effectiveLeverageDisplay').textContent = `${effectiveLeverage} 倍`;
 
       populateTable();
-      updateOrderTrackerDisplay();
+      updateOrderTrackerDisplay(); // ライブ更新時にトラッカー数値も即座に再計算・再描画
 
       localStorage.setItem('fx_trade_list', JSON.stringify(tradeHistoryList));
       localStorage.setItem('fx_monthly_goal', monthlyGoal);
