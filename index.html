@@ -6,6 +6,8 @@
   <title>FX Strategy & Monthly Recovery Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- TradingView Library -->
+  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     body {
@@ -57,8 +59,8 @@
           <div class="text-base sm:text-lg font-mono font-bold text-emerald-400" id="headerUsdJpy">158.399</div>
         </div>
         <div class="text-[10px] sm:text-xs text-slate-400 border-l border-slate-700 pl-3 hidden md:block">
-          <div>データ元: <span class="text-slate-200 font-semibold">Live API & High-Precision Canvas</span></div>
-          <div class="text-slate-400">リアルタイム価格完全連動型</div>
+          <div>データ元: <span class="text-slate-200 font-semibold">TradingView & Live API</span></div>
+          <div class="text-slate-400">リアルタイムチャート連動</div>
         </div>
       </div>
 
@@ -71,7 +73,7 @@
   <!-- Main Grid Layout -->
   <main class="flex-1 p-3 sm:p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 max-w-[1920px] mx-auto w-full">
 
-    <!-- LEFT WINDOW: High-Precision Synchronized Canvas Chart Window (7/8 cols on lg) -->
+    <!-- LEFT WINDOW: Chart Section (7/8 cols on lg) -->
     <section class="lg:col-span-7 xl:col-span-8 flex flex-col gap-4">
       <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 sm:p-4 flex flex-col h-[500px] sm:h-[650px] shadow-lg relative">
         
@@ -80,25 +82,31 @@
           <div class="flex items-center gap-2">
             <span class="text-sm sm:text-base font-bold text-slate-100 flex items-center gap-2">
               <i class="fa-solid fa-chart-candlestick text-blue-400"></i>
-              USD/JPY リアルタイム連動チャート & 発注ライン
+              USD/JPY チャート
             </span>
           </div>
 
-          <!-- Timeframe Switcher -->
+          <!-- Timeframe & View Mode Switcher (TV / 重ね) -->
           <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
             <div class="flex bg-slate-950 p-1 rounded-lg border border-slate-800 text-[11px] sm:text-xs font-semibold">
-              <button onclick="setTimeframe('15')" id="tf-15" class="px-2.5 py-1 rounded bg-blue-600 text-white transition">15分足</button>
-              <button onclick="setTimeframe('60')" id="tf-60" class="px-2.5 py-1 text-slate-400 hover:text-white transition">60分足</button>
+              <button onclick="setTimeframe('15')" id="tf-15" class="px-2.5 py-1 rounded bg-blue-600 text-white transition">15分</button>
+              <button onclick="setTimeframe('60')" id="tf-60" class="px-2.5 py-1 text-slate-400 hover:text-white transition">60分</button>
               <button onclick="setTimeframe('D')" id="tf-D" class="px-2.5 py-1 text-slate-400 hover:text-white transition">日足</button>
             </div>
-            <button onclick="fetchLiveRate()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1 rounded text-xs transition flex items-center gap-1 border border-slate-700">
-              <i class="fa-solid fa-rotate"></i> 更新
-            </button>
+
+            <div class="flex bg-slate-950 p-1 rounded-lg border border-slate-800 text-[11px] sm:text-xs font-semibold">
+              <button onclick="setChartView('tv')" id="view-tv" class="px-2.5 py-1 rounded bg-slate-800 text-blue-400 font-bold transition flex items-center gap-1">
+                <i class="fa-solid fa-chart-line"></i> TV
+              </button>
+              <button onclick="setChartView('overlay')" id="view-overlay" class="px-2.5 py-1 text-slate-400 hover:text-white transition flex items-center gap-1">
+                <i class="fa-solid fa-layer-group"></i> 重ね
+              </button>
+            </div>
           </div>
         </div>
 
-        <!-- Legend Bar -->
-        <div class="flex flex-wrap items-center gap-3 text-[11px] sm:text-xs bg-slate-950 px-3 py-1.5 rounded border border-slate-800/80 mb-2">
+        <!-- Legend Bar for Overlay Mode -->
+        <div id="chartLegend" class="hidden flex-wrap items-center gap-3 text-[11px] sm:text-xs bg-slate-950 px-3 py-1.5 rounded border border-slate-800/80 mb-2">
           <span class="text-slate-400 font-semibold">発注ライン凡例:</span>
           <span class="flex items-center gap-1 text-amber-400">
             <span class="w-2.5 h-0.5 bg-amber-400"></span> 買指値
@@ -112,8 +120,13 @@
           <span class="text-slate-500 ml-auto font-mono text-[10px] hidden sm:inline" id="tfLabelDisplay">表示: 15分足 / ローソク足・BB完全同期</span>
         </div>
 
-        <!-- Canvas Chart Container -->
-        <div class="flex-1 w-full h-full relative overflow-hidden rounded-lg border border-slate-800 bg-slate-950" id="canvasContainer">
+        <!-- TradingView Chart Container -->
+        <div class="flex-1 w-full h-full rounded-lg overflow-hidden border border-slate-800" id="tvChartWrapper">
+          <div id="tradingview_chart_container" class="w-full h-full"></div>
+        </div>
+
+        <!-- Native Canvas Overlay Container -->
+        <div class="flex-1 w-full h-full relative overflow-hidden rounded-lg border border-slate-800 bg-slate-950 hidden" id="canvasContainer">
           <canvas id="mainChartCanvas" class="w-full h-full block"></canvas>
         </div>
       </div>
@@ -433,8 +446,11 @@
 
     let currentUsdJpy = 158.399;
     let currentTimeframe = '15'; 
+    let currentViewMode = 'tv'; // デフォルトで本家TVチャートを表示
     let isPositionHeld = false;
+    let tvWidget = null;
 
+    // 高精度リアルタイム連動ローソク足ジェネレータ（「重ね」モード用）
     function generateLiveCandles(totalBars, endPrice, volatility, intervalType) {
       let fullList = [];
       let current = endPrice - (volatility * Math.sqrt(totalBars) * 0.3);
@@ -497,13 +513,15 @@
       document.getElementById('inputStartBalance').value = startBalance;
       document.getElementById('monthlyGoalInput').value = monthlyGoal;
 
-      window.addEventListener('resize', renderMainCanvasChart);
+      initTradingViewWidget();
+      window.addEventListener('resize', () => {
+        if (currentViewMode === 'overlay') renderMainCanvasChart();
+      });
+
       updateDashboard();
       previewIFD();
       fetchLiveRate();
       setInterval(fetchLiveRate, 8000);
-
-      setTimeout(renderMainCanvasChart, 150);
     });
 
     function onBuyOrSellPriceChange() {
@@ -698,6 +716,30 @@
       }
     }
 
+    function initTradingViewWidget() {
+      const container = document.getElementById('tradingview_chart_container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (typeof TradingView !== 'undefined') {
+        tvWidget = new TradingView.widget({
+          "autosize": true,
+          "symbol": "FX:USDJPY",
+          "interval": currentTimeframe,
+          "timezone": "Asia/Tokyo",
+          "theme": "dark",
+          "style": "1",
+          "locale": "ja",
+          "toolbar_bg": "#0b0e14",
+          "enable_publishing": false,
+          "hide_side_toolbar": false,
+          "allow_symbol_change": false,
+          "studies": ["STD;BB", "STD;SMA"],
+          "container_id": "tradingview_chart_container"
+        });
+      }
+    }
+
     function setTimeframe(tf) {
       currentTimeframe = tf;
       ['15', '60', 'D'].forEach(t => {
@@ -710,11 +752,41 @@
       const tfNames = { '15': '15分足', '60': '60分足', 'D': '日足' };
       document.getElementById('tfLabelDisplay').textContent = `表示: ${tfNames[tf]} / ローソク足・BB完全同期`;
 
-      renderMainCanvasChart();
+      if (currentViewMode === 'tv') {
+        initTradingViewWidget();
+      } else {
+        renderMainCanvasChart();
+      }
     }
 
-    // ★ローソク足・ボリンジャーバンド・指値ラインの完全統合描画エンジン
+    function setChartView(mode) {
+      currentViewMode = mode;
+      const tvWrapper = document.getElementById('tvChartWrapper');
+      const canvasContainer = document.getElementById('canvasContainer');
+      const legend = document.getElementById('chartLegend');
+      const btnTv = document.getElementById('view-tv');
+      const btnOverlay = document.getElementById('view-overlay');
+
+      if (mode === 'tv') {
+        tvWrapper.classList.remove('hidden');
+        canvasContainer.classList.add('hidden');
+        legend.classList.add('hidden');
+        btnTv.className = "px-2.5 py-1 rounded bg-slate-800 text-blue-400 font-bold transition flex items-center gap-1";
+        btnOverlay.className = "px-2.5 py-1 text-slate-400 hover:text-white transition flex items-center gap-1";
+        initTradingViewWidget();
+      } else {
+        tvWrapper.classList.add('hidden');
+        canvasContainer.classList.remove('hidden');
+        legend.classList.remove('hidden');
+        btnOverlay.className = "px-2.5 py-1 rounded bg-slate-800 text-blue-400 font-bold transition flex items-center gap-1";
+        btnTv.className = "px-2.5 py-1 text-slate-400 hover:text-white transition flex items-center gap-1";
+        renderMainCanvasChart();
+      }
+    }
+
     function renderMainCanvasChart() {
+      if (currentViewMode !== 'overlay') return;
+
       const canvas = document.getElementById('mainChartCanvas');
       const container = document.getElementById('canvasContainer');
       if (!canvas || !container) return;
@@ -753,7 +825,6 @@
       const priceRange = maxP - minP || 1;
       const getY = (price) => height - padding.bottom - ((price - minP) / priceRange) * (height - padding.top - padding.bottom);
 
-      // 価格グリッド線
       ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1;
       for (let i = 0; i <= 5; i++) {
         const p = minP + (priceRange / 5) * i;
@@ -767,7 +838,6 @@
       const candleWidth = Math.max(1.5, (chartWidth / candles.length) * 0.75);
       const gap = chartWidth / candles.length;
 
-      // ボリンジャーバンド帯
       ctx.beginPath();
       candles.forEach((c, i) => {
         const x = padding.left + i * gap + gap / 2;
@@ -776,7 +846,7 @@
       });
       for (let i = candles.length - 1; i >= 0; i--) {
         const x = padding.left + i * gap + gap / 2;
-        const yLower = getY(c.lowerBb);
+        const yLower = getY(candles[i].lowerBb);
         ctx.lineTo(x, yLower);
       }
       ctx.closePath();
@@ -797,13 +867,12 @@
       ctx.beginPath();
       candles.forEach((c, i) => {
         const x = padding.left + i * gap + gap / 2;
-        const yLower = getY(c.lowerBb);
+        const yLower = getY(candles[i].lowerBb);
         if (i === 0) ctx.moveTo(x, yLower); else ctx.lineTo(x, yLower);
       });
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // SMAライン
       ctx.strokeStyle = '#94a3b8';
       ctx.lineWidth = 1.2;
       ctx.beginPath();
@@ -814,7 +883,6 @@
       });
       ctx.stroke();
 
-      // ローソク足本体とヒゲの描画
       ctx.textAlign = 'center';
       candles.forEach((c, i) => {
         const x = padding.left + i * gap + gap / 2;
@@ -826,17 +894,14 @@
         const isBullish = c.close >= c.open;
         const color = isBullish ? '#10b981' : '#f43f5e';
 
-        // ヒゲ
         ctx.strokeStyle = color; ctx.lineWidth = 1;
         ctx.beginPath(); ctx.moveTo(x, yHigh); ctx.lineTo(x, yLow); ctx.stroke();
 
-        // 胴体
         ctx.fillStyle = color;
         const topY = Math.min(yOpen, yClose);
         const bodyH = Math.max(1.5, Math.abs(yClose - yOpen));
         ctx.fillRect(x - candleWidth / 2, topY, candleWidth, bodyH);
 
-        // 日付ラベル
         if (c.date && i % Math.max(1, Math.floor(candles.length / 5)) === 0) {
           ctx.fillStyle = '#94a3b8';
           ctx.font = '8px Inter';
@@ -847,7 +912,6 @@
         }
       });
 
-      // 買指値ライン（未保有時）
       if (!isPositionHeld && activeBuyPrice) {
         const yBuy = getY(activeBuyPrice);
         ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 4]);
@@ -856,7 +920,6 @@
         ctx.fillText(` [買指値: ${activeBuyPrice.toFixed(3)}]`, width - padding.right - 5, yBuy - 5);
       }
 
-      // 利確売り指値ライン
       if (activeSellPrice) {
         const ySell = getY(activeSellPrice);
         ctx.strokeStyle = '#10b981'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 4]);
@@ -865,7 +928,6 @@
         ctx.fillText(` [利確指値: ${activeSellPrice.toFixed(3)}]`, width - padding.right - 5, ySell - 5);
       }
 
-      // 保有中の建値ライン
       if (isPositionHeld && activeBuyPrice) {
         const yPos = getY(activeBuyPrice);
         const yCurr = getY(currentUsdJpy);
@@ -922,7 +984,9 @@
     }
 
     function renderAllCharts() {
-      renderMainCanvasChart();
+      if (currentViewMode === 'overlay') {
+        renderMainCanvasChart();
+      }
       renderMiniBalanceChart();
     }
 
