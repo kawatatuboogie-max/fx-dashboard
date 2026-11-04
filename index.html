@@ -99,7 +99,7 @@
           </div>
         </div>
 
-        <!-- Legend / Active Order Distance Tracker Bar (字の大きさを1.5倍に拡大 & 損益表示追加) -->
+        <!-- Legend / Active Order Distance Tracker Bar (拡大サイズ & 正確な差分・損益計算) -->
         <div class="flex flex-wrap items-center justify-between text-sm sm:text-base bg-slate-950 px-4 py-2.5 rounded border border-slate-800/80 mb-2 gap-3">
           <div class="flex items-center gap-3">
             <span class="text-slate-400 font-semibold text-xs sm:text-sm">発注監視:</span>
@@ -112,11 +112,11 @@
             </span>
           </div>
           <div class="flex items-center gap-3 font-mono text-sm sm:text-base">
-            <span class="text-slate-400 text-xs">現在値との差:</span>
-            <span class="text-blue-400 font-bold" id="trackerDiffVal">-0.101円</span>
+            <span class="text-slate-400 text-xs">指値との差:</span>
+            <span class="font-bold" id="trackerDiffVal">-- 円</span>
             <span class="text-slate-600">|</span>
-            <span class="text-slate-400 text-xs">損益換算:</span>
-            <span class="font-bold" id="trackerPnlVal">+0円</span>
+            <span class="text-slate-400 text-xs">想定/評価損益:</span>
+            <span class="font-bold" id="trackerPnlVal">-- 円</span>
           </div>
         </div>
 
@@ -494,13 +494,14 @@
       document.getElementById('trackerBuy').textContent = activeBuyPrice.toFixed(3);
       document.getElementById('trackerSell').textContent = activeSellPrice.toFixed(3);
       
-      const diff = parseFloat((activeBuyPrice - currentUsdJpy).toFixed(3));
+      // 正しい差分計算: 「現在値 - 買い指値」 (現在値の方が低ければマイナス＝指値まで下がる必要がある状態)
+      const diff = parseFloat((currentUsdJpy - activeBuyPrice).toFixed(3));
       const diffStr = (diff >= 0 ? '+' : '') + diff.toFixed(3) + '円';
       const diffEl = document.getElementById('trackerDiffVal');
       diffEl.textContent = diffStr;
-      diffEl.className = diff >= 0 ? 'text-emerald-400 font-bold font-mono' : 'text-rose-400 font-bold font-mono';
+      diffEl.className = diff >= 0 ? 'text-emerald-400 font-bold font-mono' : 'text-amber-400 font-bold font-mono';
 
-      // 現在のレートと買い指値の差に基づいた含み損益換算（5,000通貨等）
+      // 損益換算: 買い指値に対する現在の含み益/含み損 (5,000通貨などの数量を反映)
       const pnlVal = Math.round(activeQty * (currentUsdJpy - activeBuyPrice));
       const pnlStr = (pnlVal >= 0 ? '+' : '') + pnlVal.toLocaleString() + ' 円';
       const pnlEl = document.getElementById('trackerPnlVal');
