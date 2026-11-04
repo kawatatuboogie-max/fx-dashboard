@@ -6,8 +6,8 @@
   <title>FX Strategy & Monthly Recovery Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- TradingView Library -->
-  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+  <!-- TradingView Lightweight Charts Library -->
+  <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     body {
@@ -44,7 +44,7 @@
           FX Recovery & Trade Manager
           <span class="text-[10px] sm:text-xs bg-blue-900/80 text-blue-300 border border-blue-700/50 px-2.5 py-0.5 rounded-full font-normal">10倍レバレッジ仕様</span>
         </h1>
-        <p class="text-[11px] sm:text-xs text-slate-400">機械的IFD回転トレード & 月次進捗管理</p>
+        <p class="text-[11px] sm:text-xs text-slate-400">機械的IFD回転トレード & 月次進捗管理 (Lightweight Charts版)</p>
       </div>
     </div>
 
@@ -59,8 +59,8 @@
           <div class="text-base sm:text-lg font-mono font-bold text-emerald-400" id="headerUsdJpy">158.399</div>
         </div>
         <div class="text-[10px] sm:text-xs text-slate-400 border-l border-slate-700 pl-3 hidden md:block">
-          <div>データ元: <span class="text-slate-200 font-semibold">TradingView & Live API</span></div>
-          <div class="text-slate-400">リアルタイムチャート連動</div>
+          <div>エンジン: <span class="text-slate-200 font-semibold">TV Lightweight Charts</span></div>
+          <div class="text-slate-400">発注ライン完全同期型</div>
         </div>
       </div>
 
@@ -73,7 +73,7 @@
   <!-- Main Grid Layout -->
   <main class="flex-1 p-3 sm:p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 max-w-[1920px] mx-auto w-full">
 
-    <!-- LEFT WINDOW: Chart Section (7/8 cols on lg) -->
+    <!-- LEFT WINDOW: Lightweight Charts Section (7/8 cols on lg) -->
     <section class="lg:col-span-7 xl:col-span-8 flex flex-col gap-4">
       <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 sm:p-4 flex flex-col h-[500px] sm:h-[650px] shadow-lg relative">
         
@@ -82,31 +82,25 @@
           <div class="flex items-center gap-2">
             <span class="text-sm sm:text-base font-bold text-slate-100 flex items-center gap-2">
               <i class="fa-solid fa-chart-candlestick text-blue-400"></i>
-              USD/JPY チャート
+              USD/JPY インタラクティブ・同期チャート
             </span>
           </div>
 
-          <!-- Timeframe & View Mode Switcher (TV / 重ね) -->
+          <!-- Timeframe Switcher -->
           <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
             <div class="flex bg-slate-950 p-1 rounded-lg border border-slate-800 text-[11px] sm:text-xs font-semibold">
-              <button onclick="setTimeframe('15')" id="tf-15" class="px-2.5 py-1 rounded bg-blue-600 text-white transition">15分</button>
-              <button onclick="setTimeframe('60')" id="tf-60" class="px-2.5 py-1 text-slate-400 hover:text-white transition">60分</button>
+              <button onclick="setTimeframe('15')" id="tf-15" class="px-2.5 py-1 rounded bg-blue-600 text-white transition">15分足</button>
+              <button onclick="setTimeframe('60')" id="tf-60" class="px-2.5 py-1 text-slate-400 hover:text-white transition">60分足</button>
               <button onclick="setTimeframe('D')" id="tf-D" class="px-2.5 py-1 text-slate-400 hover:text-white transition">日足</button>
             </div>
-
-            <div class="flex bg-slate-950 p-1 rounded-lg border border-slate-800 text-[11px] sm:text-xs font-semibold">
-              <button onclick="setChartView('tv')" id="view-tv" class="px-2.5 py-1 rounded bg-slate-800 text-blue-400 font-bold transition flex items-center gap-1">
-                <i class="fa-solid fa-chart-line"></i> TV
-              </button>
-              <button onclick="setChartView('overlay')" id="view-overlay" class="px-2.5 py-1 text-slate-400 hover:text-white transition flex items-center gap-1">
-                <i class="fa-solid fa-layer-group"></i> 重ね
-              </button>
-            </div>
+            <button onclick="fetchLiveRate()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1 rounded text-xs transition flex items-center gap-1 border border-slate-700">
+              <i class="fa-solid fa-rotate"></i> 更新
+            </button>
           </div>
         </div>
 
-        <!-- Legend Bar for Overlay Mode -->
-        <div id="chartLegend" class="hidden flex-wrap items-center gap-3 text-[11px] sm:text-xs bg-slate-950 px-3 py-1.5 rounded border border-slate-800/80 mb-2">
+        <!-- Legend Bar -->
+        <div class="flex flex-wrap items-center gap-3 text-[11px] sm:text-xs bg-slate-950 px-3 py-1.5 rounded border border-slate-800/80 mb-2">
           <span class="text-slate-400 font-semibold">発注ライン凡例:</span>
           <span class="flex items-center gap-1 text-amber-400">
             <span class="w-2.5 h-0.5 bg-amber-400"></span> 買指値
@@ -117,18 +111,11 @@
           <span class="flex items-center gap-1 text-blue-400">
             <span class="w-2.5 h-0.5 bg-blue-400"></span> 建値
           </span>
-          <span class="text-slate-500 ml-auto font-mono text-[10px] hidden sm:inline" id="tfLabelDisplay">表示: 15分足 / ローソク足・BB完全同期</span>
+          <span class="text-slate-500 ml-auto font-mono text-[10px] hidden sm:inline" id="tfLabelDisplay">表示: 15分足 / Lightweight Engine</span>
         </div>
 
-        <!-- TradingView Chart Container -->
-        <div class="flex-1 w-full h-full rounded-lg overflow-hidden border border-slate-800" id="tvChartWrapper">
-          <div id="tradingview_chart_container" class="w-full h-full"></div>
-        </div>
-
-        <!-- Native Canvas Overlay Container -->
-        <div class="flex-1 w-full h-full relative overflow-hidden rounded-lg border border-slate-800 bg-slate-950 hidden" id="canvasContainer">
-          <canvas id="mainChartCanvas" class="w-full h-full block"></canvas>
-        </div>
+        <!-- Lightweight Charts Container -->
+        <div class="flex-1 w-full h-full relative rounded-lg overflow-hidden border border-slate-800 bg-slate-950" id="lightweightChartContainer"></div>
       </div>
 
       <!-- Strategy Guidance Cards -->
@@ -446,14 +433,19 @@
 
     let currentUsdJpy = 158.399;
     let currentTimeframe = '15'; 
-    let currentViewMode = 'tv'; // デフォルトで本家TVチャートを表示
     let isPositionHeld = false;
-    let tvWidget = null;
 
-    // 高精度リアルタイム連動ローソク足ジェネレータ（「重ね」モード用）
-    function generateLiveCandles(totalBars, endPrice, volatility, intervalType) {
+    let lwChart = null;
+    let candleSeries = null;
+    let buyPriceLine = null;
+    let sellPriceLine = null;
+    let posLine = null;
+
+    // 軽量かつ高速な軽量チャート用データ生成
+    function generateLightweightCandles(totalBars, endPrice, volatility, intervalType) {
       let fullList = [];
       let current = endPrice - (volatility * Math.sqrt(totalBars) * 0.3);
+      let startDate = new Date(2026, 9, 1); // 2026年10月起点
 
       for (let i = 0; i < totalBars; i++) {
         let open = current;
@@ -463,22 +455,21 @@
         let low = Math.min(open, close) - Math.random() * (volatility * 0.4);
         current = close;
 
-        let dateStr = '';
-        if (intervalType === '15' && i % 24 === 12) {
-          let d = new Date(2026, 10, 4);
-          d.setDate(d.getDate() - Math.floor((totalBars - 1 - i) / 24));
-          dateStr = `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
-        } else if (intervalType === '60' && i % 6 === 3) {
-          let d = new Date(2026, 10, 4);
-          d.setDate(d.getDate() - Math.floor((totalBars - 1 - i) / 6));
-          dateStr = `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
-        } else if (intervalType === 'D') {
-          let d = new Date(2026, 10, 4);
-          d.setDate(d.getDate() - (totalBars - 1 - i));
-          dateStr = `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+        let d = new Date(startDate);
+        if (intervalType === '15') {
+          d.setMinutes(d.getMinutes() + i * 15);
+        } else if (intervalType === '60') {
+          d.setHours(d.getHours() + i);
+        } else {
+          d.setDate(d.getDate() + i);
         }
 
-        fullList.push({ date: dateStr, open, high, low, close });
+        let timeStr = d.toISOString().split('T')[0];
+        if (intervalType !== 'D') {
+          timeStr += ` ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+        }
+
+        fullList.push({ time: timeStr, open, high, low, close });
       }
 
       if (fullList.length > 0) {
@@ -486,24 +477,7 @@
         fullList.forEach(c => { c.close += diff; c.high += diff; c.low += diff; c.open += diff; });
       }
 
-      let closes = fullList.map(c => c.close);
-      const maPeriod = intervalType === '15' ? 20 : (intervalType === '60' ? 14 : 10);
-      return fullList.map((c, idx) => {
-        if (idx < maPeriod) return { ...c, sma: c.close, upperBb: c.close + volatility*2, lowerBb: c.close - volatility*2 };
-        let slice = closes.slice(idx - maPeriod, idx + 1);
-        let avg = slice.reduce((a, b) => a + b, 0) / slice.length;
-        let variance = slice.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / slice.length;
-        let stdDev = Math.sqrt(variance);
-        return { ...c, sma: avg, upperBb: avg + (stdDev * 2), lowerBb: avg - (stdDev * 2) };
-      });
-    }
-
-    function getDynamicChartData() {
-      return {
-        '15': generateLiveCandles(60, currentUsdJpy, 0.025, '15'),
-        '60': generateLiveCandles(40, currentUsdJpy, 0.05, '60'),
-        'D':  generateLiveCandles(30, currentUsdJpy, 0.20, 'D')
-      };
+      return fullList;
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -513,16 +487,106 @@
       document.getElementById('inputStartBalance').value = startBalance;
       document.getElementById('monthlyGoalInput').value = monthlyGoal;
 
-      initTradingViewWidget();
-      window.addEventListener('resize', () => {
-        if (currentViewMode === 'overlay') renderMainCanvasChart();
-      });
-
+      initLightweightChart();
       updateDashboard();
       previewIFD();
       fetchLiveRate();
       setInterval(fetchLiveRate, 8000);
     });
+
+    function initLightweightChart() {
+      const container = document.getElementById('lightweightChartContainer');
+      if (!container) return;
+      container.innerHTML = '';
+
+      lwChart = LightweightCharts.createChart(container, {
+        width: container.clientWidth,
+        height: container.clientHeight,
+        layout: {
+          background: { type: LightweightCharts.ColorType.Solid, color: '#090d16' },
+          textColor: '#94a3b8',
+        },
+        grid: {
+          vertLines: { color: '#151d2a' },
+          horzLines: { color: '#151d2a' },
+        },
+        crosshair: {
+          mode: LightweightCharts.CrosshairMode.Normal,
+        },
+        rightPriceScale: {
+          borderColor: '#1e293b',
+        },
+        timeScale: {
+          borderColor: '#1e293b',
+          timeVisible: true,
+          secondsVisible: false,
+        },
+      });
+
+      candleSeries = lwChart.addCandlestickSeries({
+        upColor: '#10b981',
+        downColor: '#f43f5e',
+        borderVisible: false,
+        wickUpColor: '#10b981',
+        wickDownColor: '#f43f5e',
+      });
+
+      const bars = generateLightweightCandles(80, currentUsdJpy, 0.025, currentTimeframe);
+      candleSeries.setData(bars);
+
+      updatePriceLines();
+
+      window.addEventListener('resize', () => {
+        if (lwChart && container) {
+          lwChart.applyOptions({ width: container.clientWidth, height: container.clientHeight });
+        }
+      });
+    }
+
+    function updatePriceLines() {
+      if (!candleSeries) return;
+
+      // 既存のラインを安全にクリア
+      if (buyPriceLine) { candleSeries.removePriceLine(buyPriceLine); buyPriceLine = null; }
+      if (sellPriceLine) { candleSeries.removePriceLine(sellPriceLine); sellPriceLine = null; }
+      if (posLine) { candleSeries.removePriceLine(posLine); posLine = null; }
+
+      // 買指値ライン（未保有時）
+      if (!isPositionHeld && activeBuyPrice) {
+        buyPriceLine = candleSeries.createPriceLine({
+          price: activeBuyPrice,
+          color: '#f59e0b',
+          lineWidth: 2,
+          lineStyle: LightweightCharts.LineStyle.Dashed,
+          axisLabelVisible: true,
+          title: '買指値',
+        });
+      }
+
+      // 利確売り指値ライン
+      if (activeSellPrice) {
+        sellPriceLine = candleSeries.createPriceLine({
+          price: activeSellPrice,
+          color: '#10b981',
+          lineWidth: 2,
+          lineStyle: LightweightCharts.LineStyle.Dashed,
+          axisLabelVisible: true,
+          title: '利確指値',
+        });
+      }
+
+      // 保有中の建値ライン
+      if (isPositionHeld && activeBuyPrice) {
+        posLine = candleSeries.createPriceLine({
+          price: activeBuyPrice,
+          color: '#3b82f6',
+          lineWidth: 3,
+          lineStyle: LightweightCharts.LineStyle.Solid,
+          axisLabelVisible: true,
+          title: '保有建値',
+        });
+      }
+    }
 
     function onBuyOrSellPriceChange() {
       const bPrice = parseFloat(document.getElementById('inputBuyPrice').value) || 0;
@@ -576,8 +640,9 @@
       btn.innerHTML = `<i class="fa-solid fa-check-circle"></i> 約定してポジション化`;
       btn.onclick = simulateExecution;
 
+      updatePriceLines();
       updateDashboard();
-      alert('アクティブ注文を更新し、保存しました！');
+      alert('アクティブ注文を更新し、チャート上のラインに反映しました！');
     }
 
     function recordExecutionTrade() {
@@ -609,6 +674,7 @@
       btn.innerHTML = `<i class="fa-solid fa-check-circle"></i> 約定してポジション化`;
       btn.onclick = simulateExecution;
 
+      updatePriceLines();
       updateDashboard();
       alert(`利確（約定注文）を記録しました！ 損益: +${pnlAmount.toLocaleString()}円`);
     }
@@ -655,6 +721,7 @@
       btn.onclick = simulateExecution;
 
       closeModifyModal();
+      updatePriceLines();
       updateDashboard();
       alert(`利確（注文変更）による決済実績を記録しました！ 損益: ${pnlAmount >= 0 ? '+' : ''}${pnlAmount.toLocaleString()}円`);
     }
@@ -699,7 +766,6 @@
         startBalance = val;
         localStorage.setItem('fx_start_balance', startBalance);
         updateDashboard();
-        setTimeout(renderAllCharts, 50);
         alert(`スタート・証拠金元本を ${startBalance.toLocaleString()}円 に更新しました！`);
       } else {
         alert('有効な金額を入力してください。');
@@ -716,30 +782,6 @@
       }
     }
 
-    function initTradingViewWidget() {
-      const container = document.getElementById('tradingview_chart_container');
-      if (!container) return;
-      container.innerHTML = '';
-
-      if (typeof TradingView !== 'undefined') {
-        tvWidget = new TradingView.widget({
-          "autosize": true,
-          "symbol": "FX:USDJPY",
-          "interval": currentTimeframe,
-          "timezone": "Asia/Tokyo",
-          "theme": "dark",
-          "style": "1",
-          "locale": "ja",
-          "toolbar_bg": "#0b0e14",
-          "enable_publishing": false,
-          "hide_side_toolbar": false,
-          "allow_symbol_change": false,
-          "studies": ["STD;BB", "STD;SMA"],
-          "container_id": "tradingview_chart_container"
-        });
-      }
-    }
-
     function setTimeframe(tf) {
       currentTimeframe = tf;
       ['15', '60', 'D'].forEach(t => {
@@ -750,195 +792,11 @@
       });
 
       const tfNames = { '15': '15分足', '60': '60分足', 'D': '日足' };
-      document.getElementById('tfLabelDisplay').textContent = `表示: ${tfNames[tf]} / ローソク足・BB完全同期`;
+      document.getElementById('tfLabelDisplay').textContent = `表示: ${tfNames[tf]} / Lightweight Engine`;
 
-      if (currentViewMode === 'tv') {
-        initTradingViewWidget();
-      } else {
-        renderMainCanvasChart();
-      }
-    }
-
-    function setChartView(mode) {
-      currentViewMode = mode;
-      const tvWrapper = document.getElementById('tvChartWrapper');
-      const canvasContainer = document.getElementById('canvasContainer');
-      const legend = document.getElementById('chartLegend');
-      const btnTv = document.getElementById('view-tv');
-      const btnOverlay = document.getElementById('view-overlay');
-
-      if (mode === 'tv') {
-        tvWrapper.classList.remove('hidden');
-        canvasContainer.classList.add('hidden');
-        legend.classList.add('hidden');
-        btnTv.className = "px-2.5 py-1 rounded bg-slate-800 text-blue-400 font-bold transition flex items-center gap-1";
-        btnOverlay.className = "px-2.5 py-1 text-slate-400 hover:text-white transition flex items-center gap-1";
-        initTradingViewWidget();
-      } else {
-        tvWrapper.classList.add('hidden');
-        canvasContainer.classList.remove('hidden');
-        legend.classList.remove('hidden');
-        btnOverlay.className = "px-2.5 py-1 rounded bg-slate-800 text-blue-400 font-bold transition flex items-center gap-1";
-        btnTv.className = "px-2.5 py-1 text-slate-400 hover:text-white transition flex items-center gap-1";
-        renderMainCanvasChart();
-      }
-    }
-
-    function renderMainCanvasChart() {
-      if (currentViewMode !== 'overlay') return;
-
-      const canvas = document.getElementById('mainChartCanvas');
-      const container = document.getElementById('canvasContainer');
-      if (!canvas || !container) return;
-
-      canvas.width = container.clientWidth;
-      canvas.height = container.clientHeight;
-
-      const ctx = canvas.getContext('2d');
-      const width = canvas.width;
-      const height = canvas.height;
-
-      ctx.clearRect(0, 0, width, height);
-
-      const chartDataMap = getDynamicChartData();
-      const candles = chartDataMap[currentTimeframe];
-      const padding = { top: 35, bottom: 35, left: 10, right: 65 };
-
-      let minP = Math.min(...candles.map(c => Math.min(c.low, c.lowerBb)));
-      let maxP = Math.max(...candles.map(c => Math.max(c.high, c.upperBb)));
-
-      if (!isPositionHeld && activeBuyPrice) {
-        minP = Math.min(minP, activeBuyPrice);
-        maxP = Math.max(maxP, activeBuyPrice);
-      }
-      if (activeSellPrice) {
-        minP = Math.min(minP, activeSellPrice);
-        maxP = Math.max(maxP, activeSellPrice);
-      }
-
-      let span = maxP - minP;
-      if (span < 0.20) span = 0.20;
-      const margin = span * 0.15;
-      minP -= margin;
-      maxP += margin;
-
-      const priceRange = maxP - minP || 1;
-      const getY = (price) => height - padding.bottom - ((price - minP) / priceRange) * (height - padding.top - padding.bottom);
-
-      ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1;
-      for (let i = 0; i <= 5; i++) {
-        const p = minP + (priceRange / 5) * i;
-        const y = getY(p);
-        ctx.beginPath(); ctx.moveTo(padding.left, y); ctx.lineTo(width - padding.right, y); ctx.stroke();
-        ctx.fillStyle = '#64748b'; ctx.font = '9px Inter'; ctx.textAlign = 'left';
-        ctx.fillText(p.toFixed(3), width - padding.right + 4, y + 3);
-      }
-
-      const chartWidth = width - padding.left - padding.right;
-      const candleWidth = Math.max(1.5, (chartWidth / candles.length) * 0.75);
-      const gap = chartWidth / candles.length;
-
-      ctx.beginPath();
-      candles.forEach((c, i) => {
-        const x = padding.left + i * gap + gap / 2;
-        const yUpper = getY(c.upperBb);
-        if (i === 0) ctx.moveTo(x, yUpper); else ctx.lineTo(x, yUpper);
-      });
-      for (let i = candles.length - 1; i >= 0; i--) {
-        const x = padding.left + i * gap + gap / 2;
-        const yLower = getY(candles[i].lowerBb);
-        ctx.lineTo(x, yLower);
-      }
-      ctx.closePath();
-      ctx.fillStyle = 'rgba(56, 189, 248, 0.05)';
-      ctx.fill();
-
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
-      ctx.lineWidth = 1;
-      ctx.setLineDash([2, 2]);
-      ctx.beginPath();
-      candles.forEach((c, i) => {
-        const x = padding.left + i * gap + gap / 2;
-        const yUpper = getY(c.upperBb);
-        if (i === 0) ctx.moveTo(x, yUpper); else ctx.lineTo(x, yUpper);
-      });
-      ctx.stroke();
-
-      ctx.beginPath();
-      candles.forEach((c, i) => {
-        const x = padding.left + i * gap + gap / 2;
-        const yLower = getY(candles[i].lowerBb);
-        if (i === 0) ctx.moveTo(x, yLower); else ctx.lineTo(x, yLower);
-      });
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      ctx.strokeStyle = '#94a3b8';
-      ctx.lineWidth = 1.2;
-      ctx.beginPath();
-      candles.forEach((c, i) => {
-        const x = padding.left + i * gap + gap / 2;
-        const ySma = getY(c.sma);
-        if (i === 0) ctx.moveTo(x, ySma); else ctx.lineTo(x, ySma);
-      });
-      ctx.stroke();
-
-      ctx.textAlign = 'center';
-      candles.forEach((c, i) => {
-        const x = padding.left + i * gap + gap / 2;
-        const yOpen = getY(c.open);
-        const yClose = getY(c.close);
-        const yHigh = getY(c.high);
-        const yLow = getY(c.low);
-
-        const isBullish = c.close >= c.open;
-        const color = isBullish ? '#10b981' : '#f43f5e';
-
-        ctx.strokeStyle = color; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(x, yHigh); ctx.lineTo(x, yLow); ctx.stroke();
-
-        ctx.fillStyle = color;
-        const topY = Math.min(yOpen, yClose);
-        const bodyH = Math.max(1.5, Math.abs(yClose - yOpen));
-        ctx.fillRect(x - candleWidth / 2, topY, candleWidth, bodyH);
-
-        if (c.date && i % Math.max(1, Math.floor(candles.length / 5)) === 0) {
-          ctx.fillStyle = '#94a3b8';
-          ctx.font = '8px Inter';
-          ctx.fillText(c.date, x, height - padding.bottom + 14);
-
-          ctx.strokeStyle = '#334155';
-          ctx.beginPath(); ctx.moveTo(x, height - padding.bottom); ctx.lineTo(x, height - padding.bottom + 4); ctx.stroke();
-        }
-      });
-
-      if (!isPositionHeld && activeBuyPrice) {
-        const yBuy = getY(activeBuyPrice);
-        ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 4]);
-        ctx.beginPath(); ctx.moveTo(padding.left, yBuy); ctx.lineTo(width - padding.right, yBuy); ctx.stroke(); ctx.setLineDash([]);
-        ctx.fillStyle = '#f59e0b'; ctx.font = 'bold 10px Inter'; ctx.textAlign = 'right';
-        ctx.fillText(` [買指値: ${activeBuyPrice.toFixed(3)}]`, width - padding.right - 5, yBuy - 5);
-      }
-
-      if (activeSellPrice) {
-        const ySell = getY(activeSellPrice);
-        ctx.strokeStyle = '#10b981'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 4]);
-        ctx.beginPath(); ctx.moveTo(padding.left, ySell); ctx.lineTo(width - padding.right, ySell); ctx.stroke(); ctx.setLineDash([]);
-        ctx.fillStyle = '#10b981'; ctx.font = 'bold 10px Inter'; ctx.textAlign = 'right';
-        ctx.fillText(` [利確指値: ${activeSellPrice.toFixed(3)}]`, width - padding.right - 5, ySell - 5);
-      }
-
-      if (isPositionHeld && activeBuyPrice) {
-        const yPos = getY(activeBuyPrice);
-        const yCurr = getY(currentUsdJpy);
-        ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 2.5;
-        ctx.beginPath(); ctx.moveTo(padding.left, yPos); ctx.lineTo(width - padding.right, yPos); ctx.stroke();
-
-        ctx.fillStyle = currentUsdJpy >= activeBuyPrice ? 'rgba(16, 185, 129, 0.15)' : 'rgba(244, 63, 94, 0.15)';
-        ctx.fillRect(padding.left, Math.min(yPos, yCurr), width - padding.left - padding.right, Math.abs(yCurr - yPos));
-
-        ctx.fillStyle = '#3b82f6'; ctx.font = 'bold 10px Inter'; ctx.textAlign = 'left';
-        ctx.fillText(` [保有建値: ${activeBuyPrice.toFixed(3)}]`, padding.left + 5, yPos - 5);
+      if (candleSeries) {
+        const bars = generateLightweightCandles(80, currentUsdJpy, tf === '15' ? 0.025 : (tf === '60' ? 0.05 : 0.20), currentTimeframe);
+        candleSeries.setData(bars);
       }
     }
 
@@ -981,13 +839,6 @@
         const x = getX(i); const y = getY(val);
         ctx.fillStyle = '#10b981'; ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill();
       });
-    }
-
-    function renderAllCharts() {
-      if (currentViewMode === 'overlay') {
-        renderMainCanvasChart();
-      }
-      renderMiniBalanceChart();
     }
 
     async function fetchLiveRate() {
@@ -1048,7 +899,7 @@
       localStorage.setItem('fx_trade_list', JSON.stringify(tradeHistoryList));
       localStorage.setItem('fx_monthly_goal', monthlyGoal);
 
-      renderAllCharts();
+      renderMiniBalanceChart();
     }
 
     function populateTable() {
@@ -1090,6 +941,7 @@
       btn.textContent = "ポジション保有中（チャート青ライン参照）";
       btn.onclick = null;
 
+      updatePriceLines();
       updateDashboard();
     }
 
