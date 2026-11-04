@@ -6,8 +6,8 @@
   <title>FX Strategy & Monthly Recovery Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- TradingView Lightweight Charts Library -->
-  <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+  <!-- TradingView Widget Library -->
+  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     body {
@@ -44,7 +44,7 @@
           FX Recovery & Trade Manager
           <span class="text-[10px] sm:text-xs bg-blue-900/80 text-blue-300 border border-blue-700/50 px-2.5 py-0.5 rounded-full font-normal">10倍レバレッジ仕様</span>
         </h1>
-        <p class="text-[11px] sm:text-xs text-slate-400">機械的IFD回転トレード & 月次進捗管理 (Lightweight Charts版)</p>
+        <p class="text-[11px] sm:text-xs text-slate-400">機械的IFD回転トレード & 月次進捗管理 (TV本家完全連動版)</p>
       </div>
     </div>
 
@@ -59,8 +59,8 @@
           <div class="text-base sm:text-lg font-mono font-bold text-emerald-400" id="headerUsdJpy">158.399</div>
         </div>
         <div class="text-[10px] sm:text-xs text-slate-400 border-l border-slate-700 pl-3 hidden md:block">
-          <div>エンジン: <span class="text-slate-200 font-semibold">TV Lightweight Charts</span></div>
-          <div class="text-slate-400">発注ライン完全同期型</div>
+          <div>データ元: <span class="text-slate-200 font-semibold">TradingView & Live API</span></div>
+          <div class="text-slate-400">高機能チャート完全表示</div>
         </div>
       </div>
 
@@ -73,7 +73,7 @@
   <!-- Main Grid Layout -->
   <main class="flex-1 p-3 sm:p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 max-w-[1920px] mx-auto w-full">
 
-    <!-- LEFT WINDOW: Lightweight Charts Section (7/8 cols on lg) -->
+    <!-- LEFT WINDOW: TradingView Advanced Chart (7/8 cols on lg) -->
     <section class="lg:col-span-7 xl:col-span-8 flex flex-col gap-4">
       <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 sm:p-4 flex flex-col h-[500px] sm:h-[650px] shadow-lg relative">
         
@@ -82,40 +82,42 @@
           <div class="flex items-center gap-2">
             <span class="text-sm sm:text-base font-bold text-slate-100 flex items-center gap-2">
               <i class="fa-solid fa-chart-candlestick text-blue-400"></i>
-              USD/JPY インタラクティブ・同期チャート
+              USD/JPY TradingView 本家チャート
             </span>
           </div>
 
           <!-- Timeframe Switcher -->
           <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
             <div class="flex bg-slate-950 p-1 rounded-lg border border-slate-800 text-[11px] sm:text-xs font-semibold">
-              <button onclick="setTimeframe('15')" id="tf-15" class="px-2.5 py-1 rounded bg-blue-600 text-white transition">15分足</button>
-              <button onclick="setTimeframe('60')" id="tf-60" class="px-2.5 py-1 text-slate-400 hover:text-white transition">60分足</button>
+              <button onclick="setTimeframe('15')" id="tf-15" class="px-2.5 py-1 rounded bg-blue-600 text-white transition">15分</button>
+              <button onclick="setTimeframe('60')" id="tf-60" class="px-2.5 py-1 text-slate-400 hover:text-white transition">60分</button>
               <button onclick="setTimeframe('D')" id="tf-D" class="px-2.5 py-1 text-slate-400 hover:text-white transition">日足</button>
             </div>
-            <button onclick="fetchLiveRate()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1 rounded text-xs transition flex items-center gap-1 border border-slate-700">
-              <i class="fa-solid fa-rotate"></i> 更新
+            <button onclick="initTradingViewWidget()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1 rounded text-xs transition flex items-center gap-1 border border-slate-700">
+              <i class="fa-solid fa-rotate"></i> 再読込
             </button>
           </div>
         </div>
 
-        <!-- Legend Bar -->
-        <div class="flex flex-wrap items-center gap-3 text-[11px] sm:text-xs bg-slate-950 px-3 py-1.5 rounded border border-slate-800/80 mb-2">
-          <span class="text-slate-400 font-semibold">発注ライン凡例:</span>
-          <span class="flex items-center gap-1 text-amber-400">
-            <span class="w-2.5 h-0.5 bg-amber-400"></span> 買指値
-          </span>
-          <span class="flex items-center gap-1 text-emerald-400">
-            <span class="w-2.5 h-0.5 bg-emerald-400"></span> 利確指値
-          </span>
-          <span class="flex items-center gap-1 text-blue-400">
-            <span class="w-2.5 h-0.5 bg-blue-400"></span> 建値
-          </span>
-          <span class="text-slate-500 ml-auto font-mono text-[10px] hidden sm:inline" id="tfLabelDisplay">表示: 15分足 / Lightweight Engine</span>
+        <!-- Legend / Active Order Distance Tracker Bar -->
+        <div class="flex flex-wrap items-center justify-between text-[11px] sm:text-xs bg-slate-950 px-3 py-2 rounded border border-slate-800/80 mb-2 gap-2">
+          <div class="flex items-center gap-3">
+            <span class="text-slate-400 font-semibold">発注ライン監視:</span>
+            <span class="flex items-center gap-1 text-amber-400 font-mono">
+              買指値: <strong id="trackerBuy">158.500</strong>
+            </span>
+            <span class="text-slate-600">|</span>
+            <span class="flex items-center gap-1 text-emerald-400 font-mono">
+              利確指値: <strong id="trackerSell">158.800</strong>
+            </span>
+          </div>
+          <div class="text-slate-400 font-mono text-[11px]" id="trackerDistance">
+            現在値との差: <span class="text-blue-400 font-bold" id="trackerDiffVal">-0.101円</span>
+          </div>
         </div>
 
-        <!-- Lightweight Charts Container -->
-        <div class="flex-1 w-full h-full relative rounded-lg overflow-hidden border border-slate-800 bg-slate-950" id="lightweightChartContainer"></div>
+        <!-- TradingView Widget Container -->
+        <div class="flex-1 w-full h-full rounded-lg overflow-hidden border border-slate-800 bg-slate-950" id="tradingview_chart_container"></div>
       </div>
 
       <!-- Strategy Guidance Cards -->
@@ -433,54 +435,7 @@
 
     let currentUsdJpy = 158.399;
     let currentTimeframe = '15'; 
-    let isPositionHeld = false;
-
-    let lwChart = null;
-    let candleSeries = null;
-    let buyPriceLine = null;
-    let sellPriceLine = null;
-    let posLine = null;
-
-    // 軽量チャート互換のビジネス日・タイムスタンプ生成関数
-    function generateLightweightCandles(totalBars, endPrice, volatility, intervalType) {
-      let fullList = [];
-      let current = endPrice - (volatility * Math.sqrt(totalBars) * 0.3);
-      
-      // 基準日時 (2026年10月上旬から現在へ向かう形)
-      let baseTime = Math.floor(new Date(2026, 9, 1, 9, 0, 0).getTime() / 1000);
-      let stepSeconds = 900; // 15分
-      if (intervalType === '60') stepSeconds = 3600;
-      if (intervalType === 'D') stepSeconds = 86400;
-
-      for (let i = 0; i < totalBars; i++) {
-        let open = current;
-        let change = (Math.random() - 0.49) * volatility;
-        let close = open + change;
-        let high = Math.max(open, close) + Math.random() * (volatility * 0.4);
-        let low = Math.min(open, close) - Math.random() * (volatility * 0.4);
-        current = close;
-
-        let timeVal = baseTime + (i * stepSeconds);
-        if (intervalType === 'D') {
-          // 日足の場合はYYYY-MM-DD形式文字列が最も確実
-          let dObj = new Date(timeVal * 1000);
-          let year = dObj.getFullYear();
-          let month = String(dObj.getMonth() + 1).padStart(2, '0');
-          let day = String(dObj.getDate()).padStart(2, '0');
-          fullList.push({ time: `${year}-${month}-${day}`, open, high, low, close });
-        } else {
-          // 分足・時間足の場合はUnix Timestamp（秒）
-          fullList.push({ time: timeVal, open, high, low, close });
-        }
-      }
-
-      if (fullList.length > 0) {
-        let diff = endPrice - fullList[fullList.length - 1].close;
-        fullList.forEach(c => { c.close += diff; c.high += diff; c.low += diff; c.open += diff; });
-      }
-
-      return fullList;
-    }
+    let tvWidget = null;
 
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('inputBuyPrice').value = activeBuyPrice;
@@ -489,107 +444,57 @@
       document.getElementById('inputStartBalance').value = startBalance;
       document.getElementById('monthlyGoalInput').value = monthlyGoal;
 
-      // DOMレイアウト確定後にチャートを安全に初期化
-      setTimeout(initLightweightChart, 50);
-
+      initTradingViewWidget();
       updateDashboard();
       previewIFD();
       fetchLiveRate();
       setInterval(fetchLiveRate, 8000);
     });
 
-    function initLightweightChart() {
-      const container = document.getElementById('lightweightChartContainer');
+    function initTradingViewWidget() {
+      const container = document.getElementById('tradingview_chart_container');
       if (!container) return;
       container.innerHTML = '';
 
-      const width = container.clientWidth || 600;
-      const height = container.clientHeight || 450;
-
-      lwChart = LightweightCharts.createChart(container, {
-        width: width,
-        height: height,
-        layout: {
-          background: { type: LightweightCharts.ColorType.Solid, color: '#090d16' },
-          textColor: '#94a3b8',
-        },
-        grid: {
-          vertLines: { color: '#151d2a' },
-          horzLines: { color: '#151d2a' },
-        },
-        crosshair: {
-          mode: LightweightCharts.CrosshairMode.Normal,
-        },
-        rightPriceScale: {
-          borderColor: '#1e293b',
-        },
-        timeScale: {
-          borderColor: '#1e293b',
-          timeVisible: true,
-          secondsVisible: false,
-        },
-      });
-
-      candleSeries = lwChart.addCandlestickSeries({
-        upColor: '#10b981',
-        downColor: '#f43f5e',
-        borderVisible: false,
-        wickUpColor: '#10b981',
-        wickDownColor: '#f43f5e',
-      });
-
-      const bars = generateLightweightCandles(80, currentUsdJpy, 0.025, currentTimeframe);
-      candleSeries.setData(bars);
-      lwChart.timeScale().fitContent();
-
-      updatePriceLines();
-
-      window.addEventListener('resize', () => {
-        if (lwChart && container) {
-          lwChart.applyOptions({ width: container.clientWidth, height: container.clientHeight });
-        }
-      });
+      if (typeof TradingView !== 'undefined') {
+        tvWidget = new TradingView.widget({
+          "autosize": true,
+          "symbol": "FX:USDJPY",
+          "interval": currentTimeframe,
+          "timezone": "Asia/Tokyo",
+          "theme": "dark",
+          "style": "1",
+          "locale": "ja",
+          "toolbar_bg": "#0b0e14",
+          "enable_publishing": false,
+          "hide_side_toolbar": false,
+          "allow_symbol_change": false,
+          "studies": ["STD;BB", "STD;SMA"],
+          "container_id": "tradingview_chart_container"
+        });
+      }
     }
 
-    function updatePriceLines() {
-      if (!candleSeries) return;
+    function setTimeframe(tf) {
+      currentTimeframe = tf;
+      ['15', '60', 'D'].forEach(t => {
+        const btn = document.getElementById(`tf-${t}`);
+        if (btn) {
+          btn.className = (t === tf) ? "px-2.5 py-1 rounded bg-blue-600 text-white transition" : "px-2.5 py-1 text-slate-400 hover:text-white transition";
+        }
+      });
+      initTradingViewWidget();
+    }
 
-      if (buyPriceLine) { candleSeries.removePriceLine(buyPriceLine); buyPriceLine = null; }
-      if (sellPriceLine) { candleSeries.removePriceLine(sellPriceLine); sellPriceLine = null; }
-      if (posLine) { candleSeries.removePriceLine(posLine); posLine = null; }
-
-      if (!isPositionHeld && activeBuyPrice) {
-        buyPriceLine = candleSeries.createPriceLine({
-          price: activeBuyPrice,
-          color: '#f59e0b',
-          lineWidth: 2,
-          lineStyle: LightweightCharts.LineStyle.Dashed,
-          axisLabelVisible: true,
-          title: '買指値',
-        });
-      }
-
-      if (activeSellPrice) {
-        sellPriceLine = candleSeries.createPriceLine({
-          price: activeSellPrice,
-          color: '#10b981',
-          lineWidth: 2,
-          lineStyle: LightweightCharts.LineStyle.Dashed,
-          axisLabelVisible: true,
-          title: '利確指値',
-        });
-      }
-
-      if (isPositionHeld && activeBuyPrice) {
-        posLine = candleSeries.createPriceLine({
-          price: activeBuyPrice,
-          color: '#3b82f6',
-          lineWidth: 3,
-          lineStyle: LightweightCharts.LineStyle.Solid,
-          axisLabelVisible: true,
-          title: '保有建値',
-        });
-      }
+    function updateOrderTrackerDisplay() {
+      document.getElementById('trackerBuy').textContent = activeBuyPrice.toFixed(3);
+      document.getElementById('trackerSell').textContent = activeSellPrice.toFixed(3);
+      
+      const diff = parseFloat((activeBuyPrice - currentUsdJpy).toFixed(3));
+      const diffStr = (diff >= 0 ? '+' : '') + diff.toFixed(3) + '円';
+      const diffEl = document.getElementById('trackerDiffVal');
+      diffEl.textContent = diffStr;
+      diffEl.className = diff >= 0 ? 'text-emerald-400 font-bold font-mono' : 'text-rose-400 font-bold font-mono';
     }
 
     function onBuyOrSellPriceChange() {
@@ -629,24 +534,14 @@
       activeBuyPrice = bPrice;
       activeSellPrice = sPrice;
       activeQty = qty;
-      isPositionHeld = false;
 
       localStorage.setItem('fx_active_buy_price', activeBuyPrice);
       localStorage.setItem('fx_active_sell_price', activeSellPrice);
       localStorage.setItem('fx_active_qty', activeQty);
 
-      const badge = document.getElementById('posStatusBadge');
-      badge.className = "text-[11px] sm:text-xs bg-amber-950 text-amber-400 border border-amber-800 px-2.5 py-0.5 rounded font-medium";
-      badge.textContent = "IFD注文発注済み（約定待ち）";
-
-      const btn = document.getElementById('execBtn');
-      btn.className = "w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-lg text-xs transition flex items-center justify-center gap-2 shadow";
-      btn.innerHTML = `<i class="fa-solid fa-check-circle"></i> 約定してポジション化`;
-      btn.onclick = simulateExecution;
-
-      updatePriceLines();
+      updateOrderTrackerDisplay();
       updateDashboard();
-      alert('アクティブ注文を更新し、チャート上のラインに反映しました！');
+      alert('アクティブ注文を更新し、監視トラッカーに反映しました！');
     }
 
     function recordExecutionTrade() {
@@ -667,18 +562,6 @@
         swap: 0
       });
 
-      isPositionHeld = false;
-      const badge = document.getElementById('posStatusBadge');
-      const btn = document.getElementById('execBtn');
-
-      badge.className = "text-[11px] sm:text-xs bg-amber-950 text-amber-400 border border-amber-800 px-2.5 py-0.5 rounded font-medium";
-      badge.textContent = "IFD注文発注済み（約定待ち）";
-
-      btn.className = "w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-lg text-xs transition flex items-center justify-center gap-2 shadow";
-      btn.innerHTML = `<i class="fa-solid fa-check-circle"></i> 約定してポジション化`;
-      btn.onclick = simulateExecution;
-
-      updatePriceLines();
       updateDashboard();
       alert(`利確（約定注文）を記録しました！ 損益: +${pnlAmount.toLocaleString()}円`);
     }
@@ -713,19 +596,7 @@
         swap: 0
       });
 
-      isPositionHeld = false;
-      const badge = document.getElementById('posStatusBadge');
-      const btn = document.getElementById('execBtn');
-
-      badge.className = "text-[11px] sm:text-xs bg-amber-950 text-amber-400 border border-amber-800 px-2.5 py-0.5 rounded font-medium";
-      badge.textContent = "IFD注文発注済み（約定待ち）";
-
-      btn.className = "w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-lg text-xs transition flex items-center justify-center gap-2 shadow";
-      btn.innerHTML = `<i class="fa-solid fa-check-circle"></i> 約定してポジション化`;
-      btn.onclick = simulateExecution;
-
       closeModifyModal();
-      updatePriceLines();
       updateDashboard();
       alert(`利確（注文変更）による決済実績を記録しました！ 損益: ${pnlAmount >= 0 ? '+' : ''}${pnlAmount.toLocaleString()}円`);
     }
@@ -786,25 +657,6 @@
       }
     }
 
-    function setTimeframe(tf) {
-      currentTimeframe = tf;
-      ['15', '60', 'D'].forEach(t => {
-        const btn = document.getElementById(`tf-${t}`);
-        if (btn) {
-          btn.className = (t === tf) ? "px-2.5 py-1 rounded bg-blue-600 text-white transition" : "px-2.5 py-1 text-slate-400 hover:text-white transition";
-        }
-      });
-
-      const tfNames = { '15': '15分足', '60': '60分足', 'D': '日足' };
-      document.getElementById('tfLabelDisplay').textContent = `表示: ${tfNames[tf]} / Lightweight Engine`;
-
-      if (candleSeries) {
-        const bars = generateLightweightCandles(80, currentUsdJpy, tf === '15' ? 0.025 : (tf === '60' ? 0.05 : 0.20), currentTimeframe);
-        candleSeries.setData(bars);
-        if (lwChart) lwChart.timeScale().fitContent();
-      }
-    }
-
     function renderMiniBalanceChart() {
       const canvas = document.getElementById('miniBalanceCanvas');
       if (!canvas) return;
@@ -853,11 +705,13 @@
         if (data && data.rates && data.rates.JPY) {
           currentUsdJpy = parseFloat(data.rates.JPY.toFixed(3));
           document.getElementById('headerUsdJpy').textContent = currentUsdJpy.toFixed(3);
+          updateOrderTrackerDisplay();
           updateDashboard();
         }
       } catch (e) {
         currentUsdJpy += (Math.random() - 0.5) * 0.02;
         document.getElementById('headerUsdJpy').textContent = currentUsdJpy.toFixed(3);
+        updateOrderTrackerDisplay();
         updateDashboard();
       }
     }
@@ -900,6 +754,7 @@
       document.getElementById('effectiveLeverageDisplay').textContent = `${effectiveLeverage} 倍`;
 
       populateTable();
+      updateOrderTrackerDisplay();
 
       localStorage.setItem('fx_trade_list', JSON.stringify(tradeHistoryList));
       localStorage.setItem('fx_monthly_goal', monthlyGoal);
@@ -943,10 +798,9 @@
       badge.textContent = `ポジション保有中（${activeBuyPrice.toFixed(3)}約定 / ${activeQty.toLocaleString()}通貨）`;
 
       btn.className = "w-full bg-slate-800 text-slate-400 border border-slate-700 font-bold py-2.5 px-4 rounded-lg text-xs cursor-not-allowed";
-      btn.textContent = "ポジション保有中（チャート青ライン参照）";
+      btn.textContent = "ポジション保有中";
       btn.onclick = null;
 
-      updatePriceLines();
       updateDashboard();
     }
 
