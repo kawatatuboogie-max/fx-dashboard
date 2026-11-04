@@ -183,41 +183,31 @@
           <div class="grid grid-cols-2 gap-3 text-xs">
             <div>
               <label class="text-slate-400 block mb-1">新規買い指値 (円)</label>
-              <input type="number" step="0.001" id="inputBuyPrice" value="156.850" oninput="previewIFD()"
+              <input type="number" step="0.001" id="inputBuyPrice" value="156.850" oninput="onBuyOrSellPriceChange()"
                 class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-sm font-mono text-white focus:outline-none focus:border-blue-500">
             </div>
             <div>
-              <label class="text-slate-400 block mb-1">目標利確幅</label>
-              <select id="inputProfitPipsSelect" onchange="handleProfitPipsChange()"
-                class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
-                <option value="0.20">+20銭 (+1,000円)</option>
-                <option value="0.25">+25銭 (+1,250円)</option>
-                <option value="0.30">+30銭 (+1,500円)</option>
-                <option value="custom">手入力 (+銭)</option>
-              </select>
+              <label class="text-slate-400 block mb-1">決済売り指値 (円)</label>
+              <input type="number" step="0.001" id="inputSellPrice" value="157.050" oninput="onSellPriceDirectChange()"
+                class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-sm font-mono text-white focus:outline-none focus:border-blue-500">
             </div>
           </div>
 
-          <!-- Goal Pips Manual Custom Input (Show when 'custom' is selected) -->
-          <div id="customPipsContainer" class="hidden bg-slate-900 border border-slate-800 p-2 rounded text-xs">
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-slate-400 text-[11px] shrink-0">手入力 利確幅 (円):</span>
-              <div class="flex items-center gap-1 flex-1">
-                <span class="text-slate-500 font-mono text-xs">+</span>
-                <input type="number" step="0.005" id="inputCustomProfitPips" value="0.200" oninput="previewIFD()"
-                  class="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs font-mono text-emerald-400 font-bold focus:outline-none focus:border-blue-500">
-                <span class="text-slate-400 text-[11px] shrink-0">円</span>
-              </div>
+          <div class="grid grid-cols-1 gap-3 text-xs">
+            <div>
+              <label class="text-slate-400 block mb-1">通貨数 (数量)</label>
+              <input type="number" step="1000" id="inputQty" value="5000" oninput="previewIFD()"
+                class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-sm font-mono text-white focus:outline-none focus:border-blue-500">
             </div>
           </div>
 
           <div class="bg-slate-900 p-2.5 rounded border border-slate-800 flex justify-between items-center text-xs font-mono">
             <div>
-              <span class="text-slate-400 block text-[10px]">算出 決済売り指値</span>
-              <span class="text-emerald-400 font-bold text-sm" id="previewSellPrice">157.050 円</span>
+              <span class="text-slate-400 block text-[10px]">自動算出 目標利確幅</span>
+              <span class="text-emerald-400 font-bold text-sm" id="previewPipsWidth">+0.200円 (＋20銭)</span>
             </div>
             <div class="text-right">
-              <span class="text-slate-400 block text-[10px]">想定利益</span>
+              <span class="text-slate-400 block text-[10px]">想定利益額</span>
               <span class="text-blue-400 font-bold text-sm" id="previewProfit">+1,000 円</span>
             </div>
           </div>
@@ -234,11 +224,11 @@
           </button>
           
           <div class="grid grid-cols-2 gap-2">
-            <button onclick="recordNewTrade(1000)" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-2 rounded-lg text-[11px] sm:text-xs transition flex items-center justify-center gap-1">
-              <i class="fa-solid fa-plus-circle"></i> 利確 (+1,000円)
+            <button onclick="recordExecutionTrade()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-2 rounded-lg text-[11px] sm:text-xs transition flex items-center justify-center gap-1 shadow">
+              <i class="fa-solid fa-check"></i> 利確 (約定注文)
             </button>
-            <button onclick="recordNewTrade(1250)" class="bg-emerald-700 hover:bg-emerald-600 text-white font-bold py-2 px-2 rounded-lg text-[11px] sm:text-xs transition flex items-center justify-center gap-1">
-              <i class="fa-solid fa-plus-circle"></i> 利確 (+1,250円)
+            <button onclick="openModifyModal()" class="bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 px-2 rounded-lg text-[11px] sm:text-xs transition flex items-center justify-center gap-1 shadow">
+              <i class="fa-solid fa-pen-to-square"></i> 利確 (注文変更)
             </button>
           </div>
         </div>
@@ -280,7 +270,7 @@
               <input type="number" id="manualPrice" value="157.882" step="0.001" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 font-mono text-white text-xs">
             </div>
             <div>
-              <label class="text-slate-400 block mb-0.5 text-[10px]">損益額 (円)</label>
+              <label class="text-slate-400 block mb-0.5 text-[10px]">損益額 (円 - マイナス可)</label>
               <input type="number" id="manualPnl" value="1000" step="1" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 font-mono text-white text-xs">
             </div>
           </div>
@@ -376,7 +366,7 @@
 
           <div class="space-y-1.5 border-t border-slate-800 pt-2 text-xs">
             <div class="flex justify-between">
-              <span class="text-slate-400">必要証拠金 (5,000通貨 @10倍):</span>
+              <span class="text-slate-400">必要証拠金 (<span id="marginUnitsLabel">5,000</span>通貨 @10倍):</span>
               <span class="font-mono text-slate-200 font-bold" id="reqMarginDisplay">78,842 円</span>
             </div>
             <div class="flex justify-between">
@@ -412,6 +402,32 @@
     </section>
   </main>
 
+  <!-- 利確（注文変更）用カスタム金額入力モーダル -->
+  <div id="modifyModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-slate-900 border border-amber-500/50 rounded-xl p-5 w-full max-w-sm shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+        <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2">
+          <i class="fa-solid fa-pen-to-square"></i> 利確 (注文変更・決済入力)
+        </h3>
+        <button onclick="closeModifyModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div>
+        <label class="text-xs text-slate-400 block mb-1">確定損益金額 (円) ※マイナス入力可</label>
+        <input type="number" id="modifyPnlInput" value="1000" step="1"
+          class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 font-mono text-emerald-400 font-bold text-base focus:outline-none focus:border-amber-500">
+        <p class="text-[10px] text-slate-500 mt-1">※損切りやスワップ調整等によるマイナス金額も入力可能です。</p>
+      </div>
+      <div class="flex gap-2 pt-2">
+        <button onclick="closeModifyModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2 rounded text-xs transition">
+          キャンセル
+        </button>
+        <button onclick="submitModifyTrade()" class="flex-1 bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 rounded text-xs transition shadow">
+          この金額で決済を記録する
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const PRESET_TRADES = [
       { date: '10/15', type: 'USD/JPY ミニ売決済', qty: 1000, price: 157.780, pnl: 200, swap: 0 },
@@ -425,8 +441,8 @@
     let tradeHistoryList = JSON.parse(localStorage.getItem('fx_trade_list')) || PRESET_TRADES;
 
     let activeBuyPrice = parseFloat(localStorage.getItem('fx_active_buy_price')) || 156.850;
-    let activeProfitPips = parseFloat(localStorage.getItem('fx_active_profit_pips')) || 0.20;
-    let activeSellPrice = parseFloat((activeBuyPrice + activeProfitPips).toFixed(3));
+    let activeSellPrice = parseFloat(localStorage.getItem('fx_active_sell_price')) || 157.050;
+    let activeQty = parseInt(localStorage.getItem('fx_active_qty')) || 5000;
 
     let currentUsdJpy = 157.882;
     let currentTimeframe = '15'; 
@@ -524,22 +540,10 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('inputBuyPrice').value = activeBuyPrice;
+      document.getElementById('inputSellPrice').value = activeSellPrice;
+      document.getElementById('inputQty').value = activeQty;
       document.getElementById('inputStartBalance').value = startBalance;
       document.getElementById('monthlyGoalInput').value = monthlyGoal;
-
-      // 目標利確幅の初期設定反映
-      const select = document.getElementById('inputProfitPipsSelect');
-      const customBox = document.getElementById('customPipsContainer');
-      const standardVals = ['0.2', '0.20', '0.25', '0.3', '0.30'];
-      
-      if (standardVals.includes(String(activeProfitPips))) {
-        select.value = activeProfitPips.toFixed(2);
-        customBox.classList.add('hidden');
-      } else {
-        select.value = 'custom';
-        customBox.classList.remove('hidden');
-        document.getElementById('inputCustomProfitPips').value = activeProfitPips.toFixed(3);
-      }
 
       initTradingViewWidget();
       window.addEventListener('resize', renderAllCharts);
@@ -551,52 +555,50 @@
       setTimeout(renderAllCharts, 150);
     });
 
-    function handleProfitPipsChange() {
-      const select = document.getElementById('inputProfitPipsSelect');
-      const customBox = document.getElementById('customPipsContainer');
-      if (select.value === 'custom') {
-        customBox.classList.remove('hidden');
-      } else {
-        customBox.classList.add('hidden');
-      }
+    // 買値または売値が変更されたときに自動計算・プレビュー更新
+    function onBuyOrSellPriceChange() {
+      const bPrice = parseFloat(document.getElementById('inputBuyPrice').value) || 0;
+      // デフォルトで買値 + 0.20銭を売値の初期連動にする（必要に応じて上書き可能）
+      const sPrice = parseFloat((bPrice + 0.20).toFixed(3));
+      document.getElementById('inputSellPrice').value = sPrice;
       previewIFD();
     }
 
-    function getSelectedProfitPips() {
-      const select = document.getElementById('inputProfitPipsSelect');
-      if (select.value === 'custom') {
-        const val = parseFloat(document.getElementById('inputCustomProfitPips').value);
-        return isNaN(val) ? 0.20 : val;
-      }
-      return parseFloat(select.value) || 0.20;
+    function onSellPriceDirectChange() {
+      previewIFD();
     }
 
     function previewIFD() {
-      const bPrice = parseFloat(document.getElementById('inputBuyPrice').value) || activeBuyPrice;
-      const pPips = getSelectedProfitPips();
-      const sPrice = (bPrice + pPips).toFixed(3);
-      const profitAmt = Math.round(5000 * pPips);
+      const bPrice = parseFloat(document.getElementById('inputBuyPrice').value) || 0;
+      const sPrice = parseFloat(document.getElementById('inputSellPrice').value) || 0;
+      const qty = parseInt(document.getElementById('inputQty').value) || 5000;
 
-      document.getElementById('previewSellPrice').textContent = `${sPrice} 円`;
-      document.getElementById('previewProfit').textContent = `+${profitAmt.toLocaleString()} 円`;
+      const pipsDiff = parseFloat((sPrice - bPrice).toFixed(3));
+      const pipsDisplay = (pipsDiff >= 0 ? '+' : '') + (pipsDiff * 100).toFixed(1) + '銭';
+      const profitAmt = Math.round(qty * pipsDiff);
+
+      document.getElementById('previewPipsWidth').textContent = `${pipsDiff >= 0 ? '+' : ''}${pipsDiff.toFixed(3)}円 （${pipsDisplay}）`;
+      document.getElementById('previewProfit').textContent = `${profitAmt >= 0 ? '+' : ''}${profitAmt.toLocaleString()} 円`;
     }
 
     function applyNewOrder() {
       const bPrice = parseFloat(document.getElementById('inputBuyPrice').value);
-      const pPips = getSelectedProfitPips();
+      const sPrice = parseFloat(document.getElementById('inputSellPrice').value);
+      const qty = parseInt(document.getElementById('inputQty').value);
 
-      if (isNaN(bPrice)) {
-        alert('有効な買い指値価格を入力してください。');
+      if (isNaN(bPrice) || isNaN(sPrice) || isNaN(qty)) {
+        alert('有効な数値を入力してください。');
         return;
       }
 
       activeBuyPrice = bPrice;
-      activeProfitPips = pPips;
-      activeSellPrice = parseFloat((bPrice + pPips).toFixed(3));
+      activeSellPrice = sPrice;
+      activeQty = qty;
       isPositionHeld = false;
 
       localStorage.setItem('fx_active_buy_price', activeBuyPrice);
-      localStorage.setItem('fx_active_profit_pips', activeProfitPips);
+      localStorage.setItem('fx_active_sell_price', activeSellPrice);
+      localStorage.setItem('fx_active_qty', activeQty);
 
       const badge = document.getElementById('posStatusBadge');
       badge.className = "text-[11px] sm:text-xs bg-amber-950 text-amber-400 border border-amber-800 px-2.5 py-0.5 rounded font-medium";
@@ -608,7 +610,88 @@
       btn.onclick = simulateExecution;
 
       updateDashboard();
-      alert('アクティブ注文を更新し、保存しました！');
+      alert('アクティブ注文（買値・売値・通貨数）を更新し、保存しました！');
+    }
+
+    // ① 利確（約定注文）：設定されている決済売り指値と通貨数で自動計算して約定記録
+    function recordExecutionTrade() {
+      const bPrice = activeBuyPrice;
+      const sPrice = activeSellPrice;
+      const qty = activeQty;
+      const pnlAmount = Math.round(qty * (sPrice - bPrice));
+
+      const now = new Date();
+      const dateStr = `${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')}`;
+
+      tradeHistoryList.push({
+        date: dateStr,
+        type: 'USD/JPY ミニ売決済',
+        qty: qty,
+        price: sPrice,
+        pnl: pnlAmount,
+        swap: 0
+      });
+
+      isPositionHeld = false;
+      const badge = document.getElementById('posStatusBadge');
+      const btn = document.getElementById('execBtn');
+
+      badge.className = "text-[11px] sm:text-xs bg-amber-950 text-amber-400 border border-amber-800 px-2.5 py-0.5 rounded font-medium";
+      badge.textContent = "IFD注文発注済み（約定待ち）";
+
+      btn.className = "w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-lg text-xs transition flex items-center justify-center gap-2 shadow";
+      btn.innerHTML = `<i class="fa-solid fa-check-circle"></i> 約定してポジション化`;
+      btn.onclick = simulateExecution;
+
+      updateDashboard();
+      alert(`利確（約定注文）を記録しました！ 損益: +${pnlAmount.toLocaleString()}円`);
+    }
+
+    // ② 利確（注文変更）：モーダルを開いて自由な金額（マイナス可）を入力して記録
+    function openModifyModal() {
+      const pipsDiff = activeSellPrice - activeBuyPrice;
+      const defaultPnl = Math.round(activeQty * pipsDiff);
+      document.getElementById('modifyPnlInput').value = defaultPnl;
+      document.getElementById('modifyModal').classList.remove('hidden');
+    }
+
+    function closeModifyModal() {
+      document.getElementById('modifyModal').classList.add('hidden');
+    }
+
+    function submitModifyTrade() {
+      const pnlAmount = parseFloat(document.getElementById('modifyPnlInput').value);
+      if (isNaN(pnlAmount)) {
+        alert('有効な金額を入力してください。');
+        return;
+      }
+
+      const now = new Date();
+      const dateStr = `${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')}`;
+
+      tradeHistoryList.push({
+        date: dateStr,
+        type: 'USD/JPY ミニ売決済（変更）',
+        qty: activeQty,
+        price: activeSellPrice,
+        pnl: pnlAmount,
+        swap: 0
+      });
+
+      isPositionHeld = false;
+      const badge = document.getElementById('posStatusBadge');
+      const btn = document.getElementById('execBtn');
+
+      badge.className = "text-[11px] sm:text-xs bg-amber-950 text-amber-400 border border-amber-800 px-2.5 py-0.5 rounded font-medium";
+      badge.textContent = "IFD注文発注済み（約定待ち）";
+
+      btn.className = "w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-lg text-xs transition flex items-center justify-center gap-2 shadow";
+      btn.innerHTML = `<i class="fa-solid fa-check-circle"></i> 約定してポジション化`;
+      btn.onclick = simulateExecution;
+
+      closeModifyModal();
+      updateDashboard();
+      alert(`利確（注文変更）による決済実績を記録しました！ 損益: ${pnlAmount >= 0 ? '+' : ''}${pnlAmount.toLocaleString()}円`);
     }
 
     function toggleAddTradeForm() {
@@ -988,9 +1071,10 @@
         document.getElementById('remainingTradesNeeded').textContent = `約 ${tradesNeeded} 回`;
       }
 
-      const reqMargin = Math.round((5000 * currentUsdJpy) / 10);
+      document.getElementById('marginUnitsLabel').textContent = activeQty.toLocaleString();
+      const reqMargin = Math.round((activeQty * currentUsdJpy) / 10);
       const freeMargin = currentBalance - reqMargin;
-      const effectiveLeverage = ((5000 * currentUsdJpy) / currentBalance).toFixed(2);
+      const effectiveLeverage = ((activeQty * currentUsdJpy) / currentBalance).toFixed(2);
 
       document.getElementById('reqMarginDisplay').textContent = `${reqMargin.toLocaleString()} 円`;
       document.getElementById('freeMarginDisplay').textContent = `${freeMargin.toLocaleString()} 円`;
@@ -1037,38 +1121,11 @@
       const btn = document.getElementById('execBtn');
 
       badge.className = "text-[11px] sm:text-xs bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded font-medium animate-pulse";
-      badge.textContent = `ポジション保有中（${activeBuyPrice.toFixed(3)}約定）`;
+      badge.textContent = `ポジション保有中（${activeBuyPrice.toFixed(3)}約定 / ${activeQty.toLocaleString()}通貨）`;
 
       btn.className = "w-full bg-slate-800 text-slate-400 border border-slate-700 font-bold py-2.5 px-4 rounded-lg text-xs cursor-not-allowed";
       btn.textContent = "ポジション保有中（チャート青ライン参照）";
       btn.onclick = null;
-
-      updateDashboard();
-    }
-
-    function recordNewTrade(pnlAmount) {
-      const now = new Date();
-      const dateStr = `${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')}`;
-
-      tradeHistoryList.push({
-        date: dateStr,
-        type: 'USD/JPY ミニ売決済',
-        qty: 5000,
-        price: activeSellPrice || currentUsdJpy,
-        pnl: pnlAmount,
-        swap: 0
-      });
-
-      isPositionHeld = false;
-      const badge = document.getElementById('posStatusBadge');
-      const btn = document.getElementById('execBtn');
-
-      badge.className = "text-[11px] sm:text-xs bg-amber-950 text-amber-400 border border-amber-800 px-2.5 py-0.5 rounded font-medium";
-      badge.textContent = "IFD注文発注済み（約定待ち）";
-
-      btn.className = "w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 px-4 rounded-lg text-xs transition flex items-center justify-center gap-2 shadow";
-      btn.innerHTML = `<i class="fa-solid fa-check-circle"></i> 約定してポジション化`;
-      btn.onclick = simulateExecution;
 
       updateDashboard();
     }
